@@ -1,0 +1,29 @@
+---
+description: Como manter docs/ e .cursor/ (idioma, fonte da verdade, sem duplicação, formatos do Cursor). Use ao editar documentação, rules, instructions ou skills.
+globs: docs/**, .cursor/**, README.md
+alwaysApply: false
+---
+
+# Documentação e contexto do agente
+
+## Hierarquia (sem duplicar conteúdo)
+
+1. `docs/`: **fonte da verdade** detalhada (produto, arte, engenharia, QA).
+2. `.cursor/instructions/`: briefings curtos (≤ ~80 linhas) que resumem e **linkam** `docs/`. Não copie tabelas inteiras.
+3. `.cursor/rules/*.mdc`: restrições imperativas, curtas, com frontmatter `description` / `globs` / `alwaysApply`.
+4. `.cursor/skills/<nome>/SKILL.md`: procedimentos passo a passo para tarefas recorrentes.
+
+Mudou uma decisão? Atualize primeiro `docs/` e depois ajuste o briefing ou a rule que a resume.
+
+## Formatos do Cursor
+
+- Rules **precisam** ser `.mdc` com frontmatter (`.md` em `.cursor/rules/` é ignorado). `globs` é uma string separada por vírgulas.
+- Skills são pastas com `SKILL.md` (frontmatter `name` em kebab-case + `description` dizendo o que faz e **quando** usar).
+- `.cursor/instructions/` não é carregado automaticamente pelo Cursor: só entra em contexto via `@arquivo` nas rules. Ao criar um briefing, referencie-o numa rule.
+
+## Escrita
+
+- pt-BR, direto, específico deste projeto. Nada de conselho genérico ("escreva código limpo").
+- Números com unidade e onde ajustar. Decisões com o porquê.
+- Docs com histórico (`visual-direction.md`, `prompting-guide.md`) recebem uma linha nova na tabela de revisões/log.
+- Links relativos entre docs; âncoras no formato do GitHub.

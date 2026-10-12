@@ -1,0 +1,37 @@
+---
+description: Estilo de código TypeScript/React do projeto (exports, nomes, imports, formatação, padrões React)
+globs: src/**/*.ts, src/**/*.tsx, scripts/**/*.ts, vite.config.ts
+alwaysApply: false
+---
+
+# Estilo de código
+
+## TypeScript
+
+- `strict` ligado. Sem `any`: use `unknown` + narrowing, ou o tipo correto da lib.
+- Tipos da feature em `features/<feature>/types/index.ts`. Use `interface` para formas de objeto e `type` para uniões (`type WebcamStatus = 'idle' | 'requesting' | …`).
+- Use `import type` para imports só de tipo (`verbatimModuleSyntax` está ligado).
+- Imports relativos **com extensão** (`./SceneCanvas.tsx`, `../utils/projection.ts`), como no template.
+- Sem `enum` nem `namespace` (`erasableSyntaxOnly`). Use uniões de strings e objetos `as const`.
+
+## Formatação (sem Prettier: siga o padrão existente)
+
+2 espaços · aspas simples · sem ponto e vírgula · vírgula final em multilinha · linhas até ~100 colunas.
+
+## React
+
+- Só componentes de função. **Export nomeado**; o único `export default` é `App`.
+- Um componente por arquivo, PascalCase. Arquivos com até ~150 linhas: acima disso, extraia.
+- Hooks começam com `use` e ficam em `hooks/`. Funções puras em `utils/` (sem React).
+- Estado de alta frequência (offset, câmera, tempo) **nunca** em `useState`/Context: zustand com `getState()` ou refs.
+- Efeitos com recursos (câmera, listeners, loops) sempre retornam a limpeza.
+- Valores de ajuste vêm de `sceneConfig.ts` / `trackingConfig.ts`, nunca literais espalhados.
+
+## Comentários
+
+- Em inglês, explicando o **porquê** e as unidades (`// screen heights`, `// Hz`). Não descreva o óbvio.
+- Fórmulas não triviais: uma linha apontando para a seção do doc (`// see docs/engineering/scene-logic.md`).
+
+## Antes de terminar
+
+`bun run typecheck && bun run lint && bun run build`

@@ -1,0 +1,12 @@
+{
+  "name": "forest-asset-pipeline",
+  "private": true,
+  "type": "module",
+  "description": "Offline tools that turn the Poly Haven originals into public/assets/forest. Not used by the site.",
+  "dependencies": {
+    "@gltf-transform/core": "4.5.1",
+    "@gltf-transform/extensions": "4.5.1",
+    "@gltf-transform/functions": "4.5.1",
+    "meshoptimizer": "1.3.0"
+  }
+}

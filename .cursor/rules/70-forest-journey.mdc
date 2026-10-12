@@ -1,0 +1,34 @@
+---
+description: Regras da jornada cinematográfica pela floresta (cena compartilhada dos capítulos, scroll → câmera, parallax). Use ao mexer na cena da floresta, nos planos de câmera ou nas animações por capítulo.
+globs: src/features/forest/**, src/features/landing/components/ForestJourney.tsx
+alwaysApply: false
+---
+
+# Jornada pela floresta
+
+Arquitetura e decisões: `@docs/engineering/forest-journey.md`.
+
+- **Uma cena só** (`ForestScene`) para todos os capítulos (03–09). Nunca crie canvas por seção.
+- O scroll vira o objeto mutável `journey` (`journey/journeyState.ts`), lido no `useFrame`. Não coloque progresso de scroll em estado React nem em zustand.
+- Câmera só pelo `SceneController`: planos em `forestConfig.shots` (um por capítulo, na ordem dos `CHAPTER_IDS`), mola `smoothDamp`, sem `OrbitControls`. Perto de paredes, reduza caminhos e paralaxe com `freedom` no plano.
+- Os planos 6–7 (entrada pela janela) ficam no referencial da cabana (`cabinPoint`, `WINDOW`). A reta entre eles precisa cruzar a parede dentro do vão da janela, com folga para `freedom`. Confira com quadros na travessia (`perguntas` 0,75; `creditos` 0 e 0,2).
+- Animações por capítulo: use `journey.chapter` / `journey.chapterProgress` (3D) e `--chapter-progress` (CSS). Respeite `prefers-reduced-motion` nos efeitos que não são conduzidos pelo scroll.
+- A floresta usa **assets escaneados** de `public/assets/forest/` (Poly Haven, CC0; fontes em `LICENSE.md`). Novo asset: só com licença verificada, otimizado (LOD, WebP, meshopt) e registrado no `LICENSE.md`. Nunca sirva originais pesados.
+- Desenho em lotes (`models/lodBatches.ts`): um `BatchedMesh` por material, LOD por distância da câmera com dissolve pontilhado (`models/ditherFade.ts`, faixas em `lod.blend`). Nada aparece ou some de uma vez: ao adicionar uma distância de corte, dê a ela uma faixa de dissolve. Não crie um mesh por árvore nem por planta.
+- Distribuição com semente (`procedural/layout.ts`). Ajuste em `forestConfig` (`layout`, `lod`, `atmosphere`) antes de mexer no código.
+- A distribuição consome uma única sequência aleatória: qualquer sorteio a mais ou a menos (por exemplo, um plano de câmera novo em `layoutTrees`) sorteia a floresta inteira de novo. Ao mudar `shots` ou o layout, compare os capítulos com a versão anterior (quadros idênticos) antes de entregar.
+- O **corredor** (`layout.corridor.halfWidth`) precisa ser maior que o deslocamento máximo da câmera (x do plano + `paths.spacing × perSide` + `camera.lateral.x`). Revise ao mudar planos, caminhos ou paralaxe.
+- `atmosphere.sky.horizon` deve ser igual a `atmosphere.fog.color`.
+- Uma única luz com sombra (`SunLight`), **em cache**: se algo na cena mudar de forma ou de lugar (conteúdo novo, animação), chame `invalidateSunShadow()`; senão a sombra fica velha. Sem shaders customizados por enquanto.
+- Nada de custo de GPU "na primeira vez" durante o scroll: textura, material ou variante de shader nova entra no aquecimento (`warmUpForest`), ou seja, precisa existir e estar visível quando a floresta é montada. Confira com `bun tools/perf/scroll-audit.ts <tmp> --vsync` (nenhum programa compilado durante o scroll, nenhuma tarefa longa).
+- Trabalho pesado no carregamento é dividido com `yieldToMain()`. Texturas usam `useImageTextures` (decodificação fora da thread principal).
+- Agulhas: cartões de raminho inteiro (pipeline `process_fir.ts` + `twig_clusters.py`). Nunca amplie cartões de agulha avulsa: viram lâminas e a copa parece bambu.
+- Custo de GPU: `bun tools/perf/gpu-cost.ts <tmp>` (ms por quadro do hero e da floresta). Sem luzes pontuais novas e sem `backdrop-filter` sobre os canvases.
+- Meça em tela Retina (2×) e sem limite de fps antes de aumentar quantidades, distâncias de LOD, resolução de sombra ou densidade de pixels (máx. 1,5×).
+- Assets-fonte (`.blend`, texturas 4K/EXR) **nunca** em `public/`: tudo ali é copiado para o build. Originais ficam fora do projeto; só versões otimizadas entram em `public/assets/forest/`.
+- Rio (`procedural/river.ts`, `models/water.ts`) e cabana (`models/cabin.ts`) entram na distribuição: nada de árvore, tronco ou toco no leito ou dentro da cabana. Ao mover um deles, ajuste os planos de câmera (`shots`) e confira a travessia e o enquadramento final.
+- A cabana é sempre inteira; aparece pelo véu de distância (perspectiva atmosférica, `REVEAL_FAR` → `REVEAL_NEAR`, 100% visível ao chegar no rio). Peça nova na cabana passa por `finish()` (cor por vértice), senão quebra o merge de geometrias; material novo do terreiro ou do interior recebe `enableCabinShading` (o véu e a luz de dentro; já aplicado a tudo dentro do grupo).
+- Luz dentro da cabana é emissão no patch (`uLights`, `uLightColors`, `uLightRadius`), nunca luz real. Vidro sem `transmission`: ela redesenha a cena inteira a cada quadro.
+- Luzes novas ficam sempre na cena (intensidade 0 quando "apagadas"): mudar o número de luzes recompila todos os shaders.
+- A feature `forest` não importa `landing` nem `headTracking`: ids e entrada chegam por props.
+- Antes de adicionar GSAP/ScrollTrigger, justifique (pin, timelines). Se entrar, ele substitui só a fonte de progresso (`useJourneyTracking`).

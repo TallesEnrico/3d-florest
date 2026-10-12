@@ -1,0 +1,36 @@
+---
+description: Visão geral do projeto, fluxo de trabalho em steps e mapa de onde está cada fonte da verdade
+alwaysApply: true
+---
+
+# Floresta 3D: 3D Webcam
+
+Experiência web em que a tela vira uma janela para um vale de ilhas flutuantes. A perspectiva da cena 2.5D (React Three Fiber) acompanha a cabeça do usuário via webcam (MediaPipe Face Landmarker, processamento local), com fallback para o mouse.
+
+## Fluxo de trabalho
+
+- O projeto avança em **steps numerados**. Faça **somente** o step pedido. Não comece o próximo, não "adiante" código de steps futuros.
+- Termine seguindo `@.cursor/instructions/done-criteria.md` (comandos verdes, verificação real, arquivos listados).
+- Status dos steps e backlog: `@docs/product/roadmap.md`. Tarefas técnicas por step: `@.cursor/instructions/implementation-plan.md`.
+
+## Onde está cada verdade
+
+| Assunto | Briefing (leia primeiro) | Detalhe |
+|---|---|---|
+| Produto | `@.cursor/instructions/product-context.md` | `docs/product/` |
+| Arte | `@.cursor/instructions/art-direction.md` | `docs/art/` |
+| Arquitetura | `@.cursor/instructions/architecture.md` | `docs/engineering/` |
+| Qualidade | `@.cursor/instructions/done-criteria.md` | `docs/qa/` |
+| Landing page | `@docs/product/landing-page-plan.md` | `docs/product/section-inventory.md`, `docs/engineering/landing-page-architecture.md`, `docs/qa/landing-page-acceptance-criteria.md` |
+
+## Comandos
+
+`bun install` · `bun run dev` (http://localhost:5173) · `bun run build` · `bun run typecheck` · `bun run lint`
+O Vite 8 exige Node ≥ 22.12 (`engines` no package.json). Bun é o gerenciador: não use npm/yarn/pnpm nem crie outros lockfiles.
+
+## Sempre
+
+- Código e identificadores em inglês; docs, UI e respostas em **pt-BR**; prompts de imagem em inglês.
+- Nova dependência só com justificativa explícita.
+- Não editar `assets/` (fontes originais da arte) nem arquivos gerados (`public/mediapipe/`, `dist/`).
+- Privacidade: a câmera só após gesto do usuário; nada de vídeo sai do navegador; nenhuma requisição a terceiros em runtime.

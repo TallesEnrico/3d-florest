@@ -1,0 +1,40 @@
+---
+description: Regras da cena React Three Fiber (câmera off-axis, camadas em profundidade, materiais, performance por frame). Use ao mexer na cena 2.5D, câmera, camadas, névoa ou partículas.
+globs: src/features/scene/**
+alwaysApply: false
+---
+
+# Cena R3F
+
+Leia `@docs/engineering/scene-logic.md` antes de mudar câmera, profundidade ou escala.
+
+## Câmera
+
+- A câmera é o **olho do usuário** diante da tela (plano z = 0). A projeção off-axis é recalculada a cada frame em `WindowCamera` via `makePerspective(left, right, top, bottom, near, far)` + `projectionMatrixInverse`.
+- `<Canvas camera={{ manual: true }}>` é obrigatório: sem isso o R3F sobrescreve a projeção no resize.
+- Proibido: `OrbitControls`, `lookAt`, rotação de câmera, `fov` fixo, `updateProjectionMatrix()` na câmera da cena.
+
+## Camadas
+
+- Tamanho do plano = `cover × (D + depth)/D × overscan` (`utils/projection.ts`). Na posição neutra (`?view=0,0`), foreground e midground têm que bater com `concept/scene-reference-01.png` (o background tem +12% de overscan por projeto).
+- Ordem explícita com `renderOrder`; materiais `transparent` com `depthWrite: false`; `toneMapped: false`. Background opaco.
+- Texturas de cor: `SRGBColorSpace`, carregadas em **WebP** (o PNG é o master). Máscaras e depth: `NoColorSpace` (são dados).
+- Mudou `depth`, `overscan` ou `edgeMargin`? O orçamento geométrico é recalculado sozinho, e o olho fica em `min(motion.maxEye, orçamento)`. Valide os 4 extremos (`?view=±1,±1`) em 16:9 e 4:3. `edgeMargin` é **medida** (cobertura da moldura): não aumente sem medir de novo.
+
+## Por frame (`useFrame`)
+
+- Zero alocação: reutilize `Vector3`/objetos criados fora do loop.
+- Use `delta` para animação (independente de fps). A câmera usa a mola `smoothDamp` (`utils/smoothDamp.ts`); não troque por `lerp` fixo por frame.
+- Tempo de shader: use o uniform compartilhado `sceneTime` (avançado pelo `SceneClock`, congelado com movimento reduzido). Não crie relógios próprios.
+- Leia a entrada com `getViewInput()` (prop). Nunca `setState` do React aqui.
+- Parallax de rolagem: `getScrollProgress()` × `motion.scrollParallax`, somado **depois** do limite e da mola (acompanha o scroll no mesmo frame). Não passe esse termo pelo orçamento nem pela mola.
+
+## Efeitos (névoa, partículas, shaders)
+
+- Sutis e quentes, de acordo com `@.cursor/instructions/art-direction.md`. Somem ou param com `prefers-reduced-motion`.
+- Partículas e efeitos 3D vivem **entre** as camadas (z negativo) para ganhar paralaxe real.
+- Shaders: `ShaderMaterial` com `#include <colorspace_fragment>` no fim, para respeitar a saída sRGB.
+
+## Fronteira
+
+Nada de `@mediapipe/*` nem import de `features/headTracking` aqui. Configuração só em `config/sceneConfig.ts`.

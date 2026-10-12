@@ -1,0 +1,1157 @@
+/* ---------- Base ---------- */
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 8px;
+  left: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-150%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+.scroll-sentinel {
+  position: absolute;
+  top: 80px;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+main:focus {
+  outline: none;
+}
+
+a {
+  color: inherit;
+}
+
+:where(a, button):focus-visible {
+  outline: 2px solid var(--color-highlight);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 18px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font: 600 14px/1.2 var(--font-body);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.button--primary {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+.button--primary:hover {
+  filter: brightness(1.06);
+}
+
+.button--ghost {
+  border-color: rgb(244 236 228 / 0.4);
+  background: rgb(11 15 20 / 0.25);
+  color: var(--color-text);
+}
+
+.button--ghost:hover {
+  border-color: var(--color-text);
+}
+
+.button--large {
+  padding: 13px 26px;
+  font-size: 15px;
+}
+
+/* Labels that depend on the pointer: a mouse on desktop, a finger on touch screens (D7). */
+.touch-only {
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .touch-only {
+    display: inline;
+  }
+
+  .pointer-only {
+    display: none;
+  }
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.brand__mark {
+  width: 28px;
+  height: 28px;
+  flex: none;
+}
+
+.brand__name {
+  font: 600 18px/1 var(--font-display);
+  letter-spacing: 0.01em;
+}
+
+/* The camera is not offered on touch screens (landing plan D7). */
+@media (hover: none) and (pointer: coarse) {
+  .camera-only {
+    display: none !important;
+  }
+}
+
+/* ---------- Header ---------- */
+
+.site-header {
+  position: fixed;
+  z-index: 20;
+  inset: 0 0 auto;
+  height: var(--header-height);
+  border-bottom: 1px solid transparent;
+  color: var(--color-text);
+  transition:
+    background-color 0.35s ease,
+    border-color 0.35s ease;
+}
+
+/* Over the hero: no background; the hero's top scrim keeps it legible against the sky. */
+.site-header:not(.site-header--solid) {
+  text-shadow: 0 1px 12px rgb(0 0 0 / 0.35);
+}
+
+/* No backdrop blur: over a canvas that changes every frame the browser would re-blur the strip
+   on every frame while scrolling. A nearly opaque fill reads the same. */
+.site-header--solid {
+  border-color: var(--color-line);
+  background: rgb(11 15 20 / 0.92);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 100%;
+  padding-inline: var(--gutter);
+}
+
+.site-nav {
+  margin-left: auto;
+}
+
+.site-nav__list {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-nav__link {
+  display: block;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  font: 400 15px/1 var(--font-body);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.site-nav__link:hover {
+  color: var(--color-text);
+}
+
+.site-nav__link[aria-current='location'] {
+  color: var(--color-highlight);
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 8px;
+}
+
+/* ---------- Mobile navigation ---------- */
+
+.mobile-nav {
+  display: none;
+  margin-left: auto;
+}
+
+.mobile-nav__toggle,
+.mobile-nav__close {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.mobile-nav__toggle svg,
+.mobile-nav__close svg {
+  width: 24px;
+  height: 24px;
+}
+
+.mobile-nav__sheet {
+  width: min(360px, 100%);
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: var(--color-bg-raised);
+  color: var(--color-text);
+}
+
+.mobile-nav__sheet::backdrop {
+  background: rgb(0 0 0 / 0.55);
+}
+
+.mobile-nav__content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 100%;
+  padding: 12px var(--gutter) 32px;
+  box-sizing: border-box;
+}
+
+.mobile-nav__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mobile-nav__title {
+  font: 600 18px/1 var(--font-display);
+}
+
+.mobile-nav__list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mobile-nav__link {
+  display: block;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-line);
+  font: 600 24px/1.2 var(--font-display);
+  text-decoration: none;
+}
+
+.mobile-nav__link[aria-current='location'] {
+  color: var(--color-highlight);
+}
+
+.mobile-nav__note {
+  margin: auto 0 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+html.is-menu-open {
+  overflow: hidden;
+}
+
+@media (max-width: 767px) {
+  .site-nav,
+  .site-header__cta {
+    display: none;
+  }
+
+  .mobile-nav {
+    display: block;
+  }
+}
+
+/* ---------- Hero (section 02) ---------- */
+
+.hero {
+  position: relative;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+/* Top scrim: header legibility over the bright sky. Bottom: fade into the page. */
+.hero::before,
+.hero::after {
+  position: absolute;
+  z-index: 1;
+  inset-inline: 0;
+  pointer-events: none;
+  content: '';
+}
+
+.hero::before {
+  top: 0;
+  height: 22%;
+  background: linear-gradient(rgb(6 14 16 / 0.55), transparent);
+}
+
+.hero::after {
+  bottom: 0;
+  height: 40%;
+  background: linear-gradient(transparent, rgb(11 15 20 / 0.55) 55%, var(--color-bg));
+}
+
+.hero__copy {
+  position: absolute;
+  z-index: 2;
+  left: var(--gutter);
+  bottom: clamp(96px, 16vh, 150px);
+  max-width: 34rem;
+  text-shadow:
+    0 1px 3px rgb(0 0 0 / 0.45),
+    0 2px 22px rgb(0 0 0 / 0.5);
+  transition: opacity 1.2s ease;
+}
+
+/* Soft dark pool behind the copy: legible over waterfalls and bright mist (criterion LP-G9). */
+.hero__copy::before {
+  position: absolute;
+  z-index: -1;
+  inset: -35% -30% -40% -25%;
+  background: radial-gradient(closest-side, rgb(6 12 14 / 0.6), transparent);
+  pointer-events: none;
+  content: '';
+}
+
+/* While the head is driving the view, the copy steps back like the camera prompt. */
+.hero--tracking .hero__copy:not(:hover) {
+  /* opacity: 0.22; */
+}
+
+.hero__title {
+  margin: 0 0 12px;
+  font: 600 clamp(2.4rem, 5.2vw, 4.6rem) / 1.02 var(--font-display);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.hero__lead {
+  margin: 0;
+  color: var(--color-text-muted);
+  font: 400 clamp(1rem, 1.4vw, 1.15rem) / 1.55 var(--font-body);
+  text-wrap: pretty;
+}
+
+.hero .tracking-prompt {
+  right: var(--gutter);
+  bottom: clamp(96px, 16vh, 150px);
+  left: auto;
+  width: min(480px, calc(100% - 2 * var(--gutter)));
+  transform: none;
+}
+
+.hero__scroll-cue {
+  position: absolute;
+  z-index: 2;
+  bottom: 20px;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  transform: translateX(-50%);
+  animation: hero-cue 2.4s var(--ease-out) infinite;
+}
+
+.hero__scroll-cue svg {
+  width: 24px;
+  height: 24px;
+}
+
+@keyframes hero-cue {
+  50% {
+    translate: 0 6px;
+  }
+}
+
+/* Narrow screens: copy above, prompt centered at the bottom, taller bottom scrim. */
+@media (max-width: 899px) {
+  .hero::after {
+    height: 65%;
+  }
+
+  .hero__copy {
+    right: var(--gutter);
+    bottom: 220px;
+  }
+
+  .hero .tracking-prompt {
+    right: auto;
+    bottom: 72px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .hero__copy {
+    bottom: 96px;
+  }
+}
+
+/* ---------- Content sections ---------- */
+
+.section {
+  padding: var(--space-section) var(--gutter);
+}
+
+.section__inner {
+  max-width: var(--content-width);
+  margin-inline: auto;
+}
+
+.section__title {
+  margin: 0;
+  font: 600 clamp(2rem, 4vw, 3.25rem) / 1.08 var(--font-display);
+  text-wrap: balance;
+}
+
+/* Reserved place for a section not implemented yet: explicit, never mistaken for content. */
+.section-slot .section__inner {
+  display: grid;
+  place-content: center;
+  gap: 12px;
+  min-height: 30vh;
+  padding: 48px;
+  border: 1px dashed rgb(244 236 228 / 0.25);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.section-slot .section__title {
+  color: var(--color-text-muted);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.section-slot__note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font: 400 13px/1.4 var(--font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---------- Footer (section 08) ---------- */
+
+.site-footer {
+  padding: 64px var(--gutter) 32px;
+  border-top: 1px solid var(--color-line);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font: 400 15px/1.6 var(--font-body);
+}
+
+.site-footer__inner {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.4fr;
+  gap: 48px;
+  max-width: var(--content-width);
+  margin-inline: auto;
+}
+
+.site-footer__description {
+  max-width: 28ch;
+  margin: 16px 0 0;
+}
+
+.site-footer__heading {
+  margin: 0 0 12px;
+  color: var(--color-text);
+  font: 600 13px/1.4 var(--font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.site-footer ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-footer ul a {
+  text-decoration: none;
+}
+
+.site-footer ul a:hover {
+  color: var(--color-text);
+}
+
+.site-footer__about p {
+  margin: 0 0 12px;
+}
+
+.site-footer__credits {
+  font-size: 13px;
+}
+
+.site-footer__legal {
+  max-width: var(--content-width);
+  margin: 48px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-line);
+  font-size: 13px;
+}
+
+@media (max-width: 767px) {
+  .site-footer__inner {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header,
+  .hero__copy,
+  .site-nav__link {
+    transition: none;
+  }
+
+  .hero__scroll-cue {
+    animation: none;
+  }
+}
+
+/* ---------- Head navigation (opt-in mode, plan D10) ---------- */
+
+.head-nav {
+  --gesture-progress: 0;
+  position: fixed;
+  z-index: 15;
+  top: 50%;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transform: translateY(-50%);
+}
+
+.head-nav__rail {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 10px 8px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: rgb(10 22 24 / 0.6);
+  backdrop-filter: blur(10px);
+  color: var(--color-text-muted);
+}
+
+.head-nav__arrow {
+  width: 20px;
+  height: 20px;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.head-nav[data-direction='up'] .head-nav__arrow--up,
+.head-nav[data-direction='down'] .head-nav__arrow--down {
+  color: var(--color-highlight);
+  transform: scale(1.2);
+}
+
+/* Engaged (scrolling): the ring glows while the head stays tilted. */
+.head-nav[data-engaged='true'] .head-nav__ring {
+  box-shadow: 0 0 14px rgb(246 201 168 / 0.6);
+}
+
+/* Fills clockwise while arming; stays full while scrolling. */
+.head-nav__ring {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--color-accent) calc(var(--gesture-progress) * 1turn),
+    rgb(244 236 228 / 0.14) 0
+  );
+  mask: radial-gradient(circle, transparent 9px, #000 10px);
+}
+
+.head-nav__off {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgb(244 236 228 / 0.3);
+  border-radius: 50%;
+  background: rgb(10 22 24 / 0.85);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.head-nav__off svg {
+  width: 16px;
+  height: 16px;
+}
+
+.head-nav__off:hover {
+  color: var(--color-text);
+}
+
+/* Shown on the left of the rail for a few seconds, then fades (it stays in the DOM). */
+.head-nav__hint {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 12px);
+  width: max-content;
+  max-width: 220px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgb(10 22 24 / 0.7);
+  color: var(--color-text);
+  font: 400 13px/1.4 var(--font-body);
+  transform: translateY(-50%);
+  animation: head-nav-hint 7s ease forwards;
+  pointer-events: none;
+}
+
+.head-nav:hover .head-nav__hint {
+  animation: none;
+  opacity: 1;
+}
+
+@keyframes head-nav-hint {
+  0%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .head-nav__arrow {
+    transition: none;
+  }
+
+  .head-nav__hint {
+    animation: none;
+  }
+}
+
+/* ---------- Forest journey: one shared scene behind the five chapters ---------- */
+
+.forest-journey {
+  position: relative;
+}
+
+/* Pinned behind the chapters while they scroll by; leaves with the last one. The first
+   chapter is pulled up over it (a negative margin on the stage itself would let it overflow
+   the journey and stay pinned over the footer). */
+.forest-journey__stage {
+  position: sticky;
+  z-index: 0;
+  top: 0;
+  height: 100svh;
+  background: var(--color-bg);
+  pointer-events: none;
+}
+
+.forest-journey__stage + .section {
+  margin-top: -100svh;
+}
+
+/* The lit forest rises out of the page background as it enters, instead of starting on a hard
+   edge under the hero. --journey-enter (0 → 1) is written by the scroll system; once the stage
+   is pinned the fade is gone. */
+.forest-journey__stage::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(var(--color-bg) 0%, rgb(11 15 20 / 0.6) 22%, transparent 55%);
+  content: '';
+  opacity: calc(1 - var(--journey-enter, 1));
+  pointer-events: none;
+}
+
+.forest-journey > .section {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-content: center;
+  min-height: 100svh;
+  box-sizing: border-box;
+}
+
+/* Placeholder chapters stay readable over the scene. */
+.forest-journey .section-slot .section__inner {
+  background: rgb(11 15 20 / 0.7);
+}
+
+/* ---------- Chapters (sections 03–09): panels over the forest ---------- */
+
+/* The section is a grid (vertical centering): without an explicit width its inner wrapper
+   would shrink to its content and the panels could not align to either side. */
+.forest-journey > .section > .section__inner {
+  width: 100%;
+}
+
+/* A dark, translucent panel keeps text readable (AA) over the bright scene; panels alternate
+   sides so the forest stays visible next to them. No backdrop blur (see .site-header--solid):
+   a slightly denser fill instead. */
+.chapter {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 40rem;
+  padding: clamp(24px, 4vw, 44px);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  background: rgb(11 15 20 / 0.76);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.22);
+}
+
+.chapter--start {
+  margin-inline-end: auto;
+}
+
+.chapter--end {
+  margin-inline-start: auto;
+}
+
+.chapter--narrow {
+  max-width: 36rem;
+}
+
+.chapter--wide {
+  max-width: none;
+}
+
+.chapter--broad {
+  max-width: 60rem;
+}
+
+.chapter--center {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.chapter__eyebrow {
+  margin: 0 0 14px;
+  color: var(--color-accent);
+  font: 600 12px/1 var(--font-body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.chapter__lead {
+  max-width: 62ch;
+  margin: 18px 0 0;
+  color: var(--color-text-muted);
+  font: 400 clamp(1rem, 1.4vw, 1.125rem) / 1.65 var(--font-body);
+}
+
+.chapter--center .chapter__lead {
+  margin-inline: auto;
+}
+
+.chapter__note {
+  margin: 24px 0 0;
+  color: var(--color-text-muted);
+  font: 400 14px/1.55 var(--font-body);
+}
+
+/* Each panel fades in and settles as its chapter reaches the middle of the screen, driven by
+   the journey's --chapter-progress (no extra listener). Only where a chapter fits the screen:
+   on small screens a tall chapter would fade while it is still being read. */
+@media (prefers-reduced-motion: no-preference) and (min-width: 768px) and (min-height: 640px) {
+  .chapter {
+    opacity: clamp(0, min(var(--chapter-progress, 0.5) * 5, (1 - var(--chapter-progress, 0.5)) * 5), 1);
+    transform: translateY(calc((0.5 - var(--chapter-progress, 0.5)) * 48px));
+  }
+}
+
+/* 03 · Manifesto */
+.manifesto__highlight {
+  margin: 28px 0 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-line);
+  color: var(--color-highlight);
+  font: 600 clamp(1.4rem, 2.4vw, 1.9rem) / 1.25 var(--font-display);
+  text-wrap: balance;
+}
+
+/* 04 · Como funciona: the steps and the three depths side by side on wide screens. */
+.how__columns {
+  display: grid;
+  gap: 8px 40px;
+  margin-top: 8px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+@media (max-width: 899px) {
+  .how__columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.steps {
+  display: grid;
+  gap: 18px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.steps__item {
+  position: relative;
+  padding-left: 44px;
+  counter-increment: step;
+}
+
+.steps__item::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgb(246 201 168 / 0.5);
+  border-radius: 50%;
+  color: var(--color-accent);
+  content: counter(step);
+  font: 600 13px/1 var(--font-body);
+  place-items: center;
+}
+
+.steps__title,
+.depths__title,
+.feature__title {
+  margin: 0;
+  color: var(--color-text);
+  font: 600 16px/1.35 var(--font-body);
+}
+
+.steps__item p,
+.feature__text {
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font: 400 15px/1.6 var(--font-body);
+}
+
+.depths__title {
+  margin-top: 32px;
+  font: 600 clamp(1.15rem, 1.8vw, 1.35rem) / 1.3 var(--font-display);
+}
+
+.depths {
+  display: grid;
+  gap: 14px;
+  margin: 16px 0 0;
+}
+
+.depths__row dt {
+  color: var(--color-text);
+  font: 600 14px/1.4 var(--font-body);
+}
+
+.depths__where {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.depths__row dd {
+  display: grid;
+  gap: 6px;
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font: 400 13px/1.4 var(--font-body);
+}
+
+/* Bar length = share of the viewer's movement the layer follows (0 for the frame). */
+.depths__bar {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--color-accent) calc(var(--follows) * 100%), rgb(244 236 228 / 0.12) 0);
+}
+
+/* 05 · Recursos */
+.features {
+  display: grid;
+  gap: 16px;
+  margin: 28px 0 0;
+  padding: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+}
+
+.feature {
+  padding: 22px;
+  border: 1px solid var(--color-line);
+  border-radius: calc(var(--radius) - 4px);
+  background: rgb(244 236 228 / 0.04);
+}
+
+.feature__icon {
+  display: block;
+  margin-bottom: 14px;
+  color: var(--color-accent);
+}
+
+@media (max-width: 1023px) {
+  .features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .features {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 06 · Bastidores */
+.making {
+  display: grid;
+  gap: 18px;
+  margin: 28px 0 0;
+  padding: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+}
+
+.making__figure {
+  margin: 0;
+}
+
+.making__figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--color-line);
+  border-radius: calc(var(--radius) - 6px);
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--color-bg);
+}
+
+.making__figure figcaption {
+  margin-top: 12px;
+  color: var(--color-text-muted);
+  font: 400 14px/1.55 var(--font-body);
+}
+
+.making__figure strong {
+  color: var(--color-text);
+}
+
+.making__step {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-accent);
+  font: 600 12px/1 var(--font-body);
+  letter-spacing: 0.12em;
+}
+
+@media (max-width: 1023px) {
+  .making {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 539px) {
+  .making {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 07 · Experimente */
+.experience__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.experience__tips {
+  display: grid;
+  gap: 6px;
+  max-width: 34rem;
+  margin: 28px auto 0;
+  padding: 20px 0 0;
+  border-top: 1px solid var(--color-line);
+  color: var(--color-text-muted);
+  font: 400 14px/1.5 var(--font-body);
+  list-style: none;
+}
+
+/* 08 · Perguntas: native disclosures, one open at a time. */
+.faq {
+  display: grid;
+  margin: 24px 0 0;
+  border-top: 1px solid var(--color-line);
+}
+
+.faq__item {
+  border-bottom: 1px solid var(--color-line);
+}
+
+.faq__question {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  color: var(--color-text);
+  cursor: pointer;
+  font: 600 15px/1.4 var(--font-body);
+  list-style: none;
+}
+
+.faq__question::-webkit-details-marker {
+  display: none;
+}
+
+/* A plus that turns into a minus while open. */
+.faq__question::after {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background:
+    linear-gradient(var(--color-accent), var(--color-accent)) center / 100% 1.5px no-repeat,
+    linear-gradient(var(--color-accent), var(--color-accent)) center / 1.5px 100% no-repeat;
+  content: '';
+}
+
+.faq__item[open] > .faq__question::after {
+  background: linear-gradient(var(--color-accent), var(--color-accent)) center / 100% 1.5px no-repeat;
+}
+
+.faq__question:hover {
+  color: var(--color-highlight);
+}
+
+.faq__question:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.faq__answer {
+  margin: 0;
+  padding: 0 26px 16px 0;
+  color: var(--color-text-muted);
+  font: 400 15px/1.6 var(--font-body);
+}
+
+/* 09 · Créditos */
+.credits {
+  display: grid;
+  gap: 14px 28px;
+  margin: 24px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-line);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.credits__title {
+  color: var(--color-accent);
+  font: 600 12px/1.2 var(--font-body);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.credits__text {
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font: 400 14px/1.55 var(--font-body);
+}
+
+@media (max-width: 639px) {
+  .credits {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Gesture hint: desktop pointers only; appears once the forest is on screen, then fades. */
+.forest-journey__hint {
+  position: absolute;
+  z-index: 2;
+  bottom: 24px;
+  left: 50%;
+  display: none;
+  width: max-content;
+  max-width: calc(100% - 2 * var(--gutter));
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgb(10 22 24 / 0.7);
+  color: var(--color-text-muted);
+  font: 400 13px/1.4 var(--font-body);
+  text-align: center;
+  opacity: 0;
+  transform: translateX(-50%);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .forest-journey__hint {
+    display: block;
+  }
+
+  .forest-journey__stage.is-visible .forest-journey__hint {
+    animation: forest-hint 9s ease 0.6s both;
+  }
+}
+
+@keyframes forest-hint {
+  0% {
+    opacity: 0;
+  }
+  10%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forest-journey__stage.is-visible .forest-journey__hint {
+    animation: none;
+    opacity: 1;
+  }
+}

@@ -1,0 +1,30 @@
+---
+description: Regras da landing page (layout, header, menus, rodapé, seções, slots, CTA da câmera). Use ao criar ou alterar seções da página ou a estrutura global.
+globs: src/features/landing/**, index.html
+alwaysApply: false
+---
+
+# Landing page
+
+Plano e decisões aprovadas: `@docs/product/landing-page-plan.md`. Seção por seção: `@docs/product/section-inventory.md`. Como implementar: `@docs/engineering/landing-page-architecture.md`. Aceite: `docs/qa/landing-page-acceptance-criteria.md`.
+
+## Seções
+
+- IDs, ordem, rótulos de navegação e textos vêm **só** de `config/landingContent.ts`. Nunca escreva `href="#..."` à mão: use `sectionHref(id)` com `SectionId`.
+- Nova seção = `sections/<Nome>Section.tsx` usando `SectionContainer` (`id` = seu `SectionId`, `h2` com `id="<id>-title"`) + registro em `sections/index.ts`. O `SectionSlot` some sozinho.
+- Implemente **uma seção por vez**, na posição do plano. Atualize o status no inventário só quando os critérios LP-G e LP-S dela passarem.
+- Nenhum conteúdo fictício como final: textos do inventário são rascunhos; dados de negócio (contato, redes, clientes) só com fonte real.
+
+## Hero e câmera
+
+- O hero é a cena existente (`HeroSection`): não duplique a cena. As seções 03–09 são **capítulos da jornada pela floresta** (`ForestJourney` → `ForestScene`): uma cena compartilhada; nenhuma seção cria canvas próprio. Visuais 3D dos capítulos entram na feature `forest` (ver `@docs/engineering/forest-journey.md`).
+- Ligar a câmera fora do hero: `requestCamera()` de `headTracking/controls.ts`, chamado **dentro** do handler do clique (gesto do usuário), seguido de `scrollToSection(HERO_ID)`. Use o componente `CameraCta`.
+- Nada de MediaPipe ou câmera antes de um clique. Elementos ligados à câmera levam a classe `camera-only` (ocultos em touch, decisão D7).
+
+## Estilo e comportamento
+
+- Cores, fontes e espaços dos tokens (`styles/tokens.css`). Fontes só locais (`public/fonts`).
+- Animações: IntersectionObserver + CSS; nada de listener de `scroll` contínuo (única exceção: `useJourneyTracking` da jornada pela floresta, passivo e limitado a 1×/frame; use `--chapter-progress` em vez de criar outro). Efeitos não conduzidos pelo scroll desligam com `prefers-reduced-motion`.
+- Imagens abaixo da dobra: `<img loading="lazy" decoding="async" width height>` em WebP.
+- Acessibilidade: um `h1` (hero), `h2` por seção, foco visível, sem rolagem horizontal de 360 a 1920 px.
+- Sem dependência nova (nada de framer-motion, GSAP, react-router) sem justificativa aprovada.

@@ -1,0 +1,50 @@
+---
+description: Regras de head tracking (webcam, MediaPipe Face Landmarker, calibração, filtro, fallback para mouse, privacidade). Use ao mexer em câmera, permissões, tracking ou no store de entrada.
+globs: src/features/headTracking/**, scripts/setup-mediapipe.ts
+alwaysApply: false
+---
+
+# Head tracking
+
+Leia `@docs/engineering/head-tracking.md` antes de mudar o pipeline, a calibração ou a sensibilidade.
+
+## Privacidade (inegociável)
+
+- `getUserMedia` **só** após clique do usuário. Nunca no mount.
+- Nenhum frame salvo, enviado ou desenhado fora do painel de debug.
+- wasm e modelo servidos de `/mediapipe/` (gerados por `scripts/setup-mediapipe.ts`). Proibido apontar para CDN.
+
+## Ciclo de vida
+
+- Parar = `track.stop()` em todas as tracks + `video.srcObject = null` + cancelar o loop + `landmarker.close()`.
+- Desmontar o controller e ocultar a aba liberam a câmera. Voltar à aba retoma se estava ativo.
+- `detectForVideo` exige timestamp **estritamente crescente**. Sempre passe pelo helper do service.
+- MediaPipe via `import()` dinâmico (chunk separado). Tente o delegate `GPU` e caia para `CPU` se falhar.
+
+## Sinal
+
+- Saída única: `offset` normalizado em [−1, 1] no `headTrackingStore`, já espelhado (+x = usuário foi para a direita dele).
+- Ordem: medida (íris 468/473 + IPD) → neutro calibrado → deslocamento em IPDs / `rangeX|Y` → zona morta → `tanh` → One Euro.
+- O tracking **não** conhece pixels de tela nem a câmera 3D. O limite geométrico é da cena.
+- Rosto perdido → status `searching`, offset alvo 0 (a cena amortece). Não troque para o mouse automaticamente.
+
+## Estados e fallback
+
+- `webcam`: `idle | requesting | active | denied | unavailable | error`; `tracking`: `idle | loading | calibrating | tracking | searching`.
+- `denied` / `unavailable` / `error` → `source = 'mouse'` + mensagem calma com próximo passo.
+- Mapeie erros por `error.name` (ver tabela no doc). Nunca mostre stack trace na UI.
+
+## Store
+
+- zustand. Escrita por frame com `setState` fora do React. A cena lê com `getState()`.
+- Componentes só assinam campos de baixa frequência (status). O painel de debug é a única exceção.
+
+## Inclinação e gesto (navegar com a cabeça)
+
+- Inclinação vem da matriz de pose (`pitchFromMatrix`); + = olhando para baixo, relativa ao neutro calibrado.
+- O gesto é `HoldGesture`: limite + segurar para engatar; engatado, rola enquanto a cabeça fica inclinada (histerese até `releaseDeg`). Não remova o "segurar" inicial: ele é a proteção contra rolagem acidental.
+- Gestos só contam com o modo ligado (`store.navigation`) e em frames confiáveis. Desligar a câmera desliga o modo.
+
+## Ajustes
+
+Sensibilidade, filtro, calibração, gesto e opções do MediaPipe ficam **só** em `config/trackingConfig.ts`.
