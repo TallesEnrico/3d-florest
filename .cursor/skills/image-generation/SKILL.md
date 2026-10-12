@@ -13,8 +13,8 @@ Leia: `docs/art/visual-direction.md` (estética), `docs/art/prompting-guide.md` 
 
 | Pedido | Saída |
 |---|---|
-| Variação de conceito | `public/assets/environment/concept/scene-reference-0N.png` |
-| Trocar uma camada | `public/assets/environment/<camada>/<camada>.png` + regenerar derivados |
+| Variação de conceito | Fora do projeto (só os WebP de entrega ficam em `public/`) |
+| Trocar uma camada | Master PNG fora do projeto → `public/assets/environment/<camada>/<camada>.webp` |
 | Upscale | As 3 camadas na mesma escala (2× ou 3×), mantendo o alinhamento |
 
 ## 2. Prompt
@@ -44,7 +44,7 @@ As fontes ficam em `assets/` (intocadas). Aplique em cópias:
 
 ## 5. Derivados
 
-Regenere o WebP de entrega de cada camada alterada (`cwebp -q 90 -alpha_q 100 -exact -sharp_yuv -m 6 <camada>.png -o <camada>.webp`), `masks/midground-water-mask.png`, `masks/midground-mist-mask.png`, `masks/foreground-emissive-mask.png`, `depth/layer-depth.png` e `concept/scene-reference-01.png` (composto neutro).
+Gere o WebP de entrega de cada camada alterada (`cwebp -q 90 -alpha_q 100 -exact -sharp_yuv -m 6 <camada>.png -o <camada>.webp`) a partir do master, que fica fora do projeto. Máscaras, mapa de profundidade e referência só se uma feature voltar a usá-los (os da arte anterior estão no commit `e8aee56`).
 
 ## 6. Validar
 

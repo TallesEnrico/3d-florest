@@ -1,0 +1,62 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build project
+        run: bun run build
+
+      - name: Check if dist exists
+        run: ls -la ./dist || echo "⚠️ dist folder not found"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: ./dist
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: ./dist
+
+      - name: Check if dist was downloaded
+        run: ls -la ./dist || echo "⚠️ dist folder not found after download"
+
+      - name: Install SSH and SSHPass
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass openssh-client
+
+      - name: Deploy via SCP
+        env:
+          pass: ${{ secrets.SSH_PASS }}
+          addres: ${{ secrets.SSH_ADDRESS }}
+        run: |
+          sshpass -p "$pass" scp -o StrictHostKeyChecking=no -r ./dist/* "$addres"

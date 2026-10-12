@@ -10,10 +10,9 @@
 >
 > Muda em relação a este documento:
 > - não há bioluminescência na moldura, e a máscara emissiva não é mais usada;
-> - as máscaras de água e névoa e a referência em `concept/` correspondem à arte anterior;
 > - os ajustes medidos na arte nova (sol, faixas de névoa, margens do vale) estão em `src/features/scene/config/sceneConfig.ts`.
 >
-> A arte anterior continua em `assets/` na raiz do repositório.
+> **Limpeza (2026-10-12):** só os WebP de entrega ficam no projeto (`<camada>/<camada>.webp`). Saíram, por não serem usados: os PNG master das camadas, as máscaras (`masks/`), o mapa de profundidade (`depth/`), a referência (`concept/`), um backup `_midground.webp` e a arte anterior em `assets/` na raiz. Tudo pode ser recuperado do commit `e8aee56` (`git checkout e8aee56 -- <caminho>`). As seções abaixo descrevem o pipeline original.
 
 ---
 

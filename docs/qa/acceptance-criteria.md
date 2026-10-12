@@ -6,7 +6,7 @@ Cada critério é verificável. O "como verificar" está em [testing-checklist.m
 
 | ID | Critério |
 |---|---|
-| AC-V1 | Na posição neutra (`?view=0,0`), foreground e midground coincidem com `public/assets/environment/concept/scene-reference-01.png` (modo cover). O background aparece 12% ampliado por projeto ([scene-logic](../engineering/scene-logic.md#posicionamento-das-camadas)). Névoa e vinheta são adições. |
+| AC-V1 | Na posição neutra (`?view=0,0`), foreground e midground coincidem com as pinturas planas sobrepostas (modo cover; a referência da arte anterior saiu do projeto em 2026-10-12). O background aparece 12% ampliado por projeto ([scene-logic](../engineering/scene-logic.md#posicionamento-das-camadas)). Névoa e vinheta são adições. |
 | AC-V2 | Em nenhuma posição dentro do orçamento aparece borda de camada, faixa vazia ou fundo da página, em 16:9, 16:10, 21:9 e 4:3 |
 | AC-V3 | Cores fiéis à arte: sem aspecto lavado nem saturado demais (sem tone mapping, texturas em sRGB) |
 | AC-V4 | A névoa e os efeitos atmosféricos são sutis: não escondem a ilha herói nem o lago |

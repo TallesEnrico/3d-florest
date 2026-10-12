@@ -13,7 +13,7 @@ export interface LayerConfig {
    * foreground frame. Extends the geometric margin in the motion budget.
    */
   edgeMargin?: { x: number; y: number }
-  /** Optional breathing glow driven by an emissive mask (masks/*-emissive-mask.png). */
+  /** Optional breathing glow driven by an emissive mask (white = glows; none in the current art). */
   glow?: LayerGlowConfig
   /** Explicit draw order, back to front. */
   renderOrder: number

@@ -15,8 +15,6 @@ export function createRng(seed: number): Rng {
 
 export const between = (rng: Rng, min: number, max: number) => min + (max - min) * rng()
 
-export const pick = <T>(rng: Rng, items: readonly T[]): T => items[Math.floor(rng() * items.length)]
-
 const smooth = (t: number) => t * t * (3 - 2 * t)
 
 export type Noise2D = (x: number, y: number) => number

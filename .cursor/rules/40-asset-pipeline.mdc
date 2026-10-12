@@ -13,7 +13,7 @@ Fonte da verdade: `@docs/art/asset-spec.md`. Procedimento completo: skill `image
 - `assets/` guarda as **fontes originais** do usuário: nunca editar ou sobrescrever. Versões tratadas vão para `public/assets/environment/<camada>/`.
 - As camadas `background`, `midground` e `foreground` têm a **mesma resolução e alinhamento** (hoje 1672 × 941). Trocar uma exige que o composto neutro continue alinhado.
 - Alfa *straight*: núcleo = 255, lixo < 6% removido, RGB preenchido sob áreas transparentes (*edge padding*). Sem isso aparecem halos no WebGL.
-- Mudou uma camada → regenerar o `.webp` de entrega (comando no asset-spec §3, com `-exact`), `masks/*`, `depth/layer-depth.png` e `concept/scene-reference-01.png`, e revalidar os extremos de paralaxe (asset-spec §4).
+- Mudou uma camada → gerar o `.webp` de entrega a partir do master (comando no asset-spec §3, com `-exact`) e revalidar os extremos de paralaxe (asset-spec §4). Só os WebP ficam no projeto: masters, máscaras e referências ficam fora (os antigos estão no commit `e8aee56`).
 - Registrar origem, ferramenta e prompt no log `docs/art/prompting-guide.md` §9.
 - Nomes em inglês, kebab-case, numeração `-01`. Máscaras: `<camada>-<conteúdo>-mask.png`.
 - Proibido: nomes ou referências de franquias (ex.: "Avatar", "Pandora"), texto ou marca d'água nas imagens, verde chroma no foreground.

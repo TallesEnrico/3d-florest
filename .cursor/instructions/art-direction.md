@@ -10,11 +10,11 @@ Vista de dentro de um **arco de selva** (troncos com musgo, monsteras, samambaia
 
 | Arquivo | Conteúdo | Papel |
 |---|---|---|
-| `background/background.png` | Céu, sol, ilhas distantes (opaco) | Profundidade infinita; fonte de luz |
-| `midground/midground.png` | Ilhas, cachoeiras, lago (alfa) | A cena principal |
-| `foreground/foreground.png` | Moldura de selva + plantas bioluminescentes (alfa) | A janela; maior contraste |
+| `background/background.webp` | Céu e vale ao pôr do sol (opaco) | Profundidade infinita; fonte de luz |
+| `midground/midground.webp` | Vale de floresta tropical com cachoeiras, rio e montanhas na névoa (alfa) | A cena principal |
+| `foreground/foreground.webp` | Moldura de selva com o centro transparente (alfa) | A janela; maior contraste |
 
-Máscaras auxiliares em `masks/` (água, névoa, emissivo) e depth em `depth/`. Composto neutro: `concept/scene-reference-01.png`.
+Só os WebP de entrega ficam no projeto. Masters PNG, máscaras e a referência da arte anterior saíram (recuperáveis do commit `e8aee56`).
 
 ## Paleta-chave
 

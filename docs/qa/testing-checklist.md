@@ -16,7 +16,7 @@ bun run build        # typecheck + build de produção
 ## 2. Visual (cena)
 
 - [ ] `bun run dev`, abrir http://localhost:5173 **sem** mover o mouse: a cena aparece com cores corretas (AC-V3)
-- [ ] Posição neutra: abrir `?view=0,0` e comparar com `concept/scene-reference-01.png` (AC-V1)
+- [ ] Posição neutra: abrir `?view=0,0` e comparar com as três camadas sobrepostas (AC-V1)
 - [ ] Extremos: `?view=1,1`, `?view=-1,-1`, `?view=1,-1`, `?view=-1,1` em 16:9, 16:10, 21:9 e 4:3 (DevTools → modo responsivo): nenhuma borda aparece (AC-V2)
 - [ ] A moldura (foreground) fica parada; só o mundo atrás dela se move
 - [ ] Névoa sutil; a ilha herói e o lago continuam nítidos (AC-V4)

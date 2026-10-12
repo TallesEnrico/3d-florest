@@ -11,7 +11,7 @@ const LAYER_URLS = layers.map((layer) => layer.url)
 
 /**
  * The painted layers as planes behind the screen. Each plane is scaled by its depth so that,
- * from the neutral eye position, the stack composes like concept/scene-reference-01.png.
+ * from the neutral eye position, the stack composes like the flat painting.
  */
 export function LayeredEnvironment() {
   const textures = useLayerTextures(LAYER_URLS)

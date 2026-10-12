@@ -16,7 +16,7 @@ Leia `@docs/engineering/scene-logic.md` antes de mudar câmera, profundidade ou 
 
 ## Camadas
 
-- Tamanho do plano = `cover × (D + depth)/D × overscan` (`utils/projection.ts`). Na posição neutra (`?view=0,0`), foreground e midground têm que bater com `concept/scene-reference-01.png` (o background tem +12% de overscan por projeto).
+- Tamanho do plano = `cover × (D + depth)/D × overscan` (`utils/projection.ts`). Na posição neutra (`?view=0,0`), foreground e midground têm que bater com as pinturas planas (as três camadas sobrepostas; o background tem +12% de overscan por projeto).
 - Ordem explícita com `renderOrder`; materiais `transparent` com `depthWrite: false`; `toneMapped: false`. Background opaco.
 - Texturas de cor: `SRGBColorSpace`, carregadas em **WebP** (o PNG é o master). Máscaras e depth: `NoColorSpace` (são dados).
 - Mudou `depth`, `overscan` ou `edgeMargin`? O orçamento geométrico é recalculado sozinho, e o olho fica em `min(motion.maxEye, orçamento)`. Valide os 4 extremos (`?view=±1,±1`) em 16:9 e 4:3. `edgeMargin` é **medida** (cobertura da moldura): não aumente sem medir de novo.

@@ -23,7 +23,7 @@ As máscaras do step 2 já existem e esperam por isto:
 |---|---|---|
 | Água ondulando + brilho especular que reage à cabeça | `midground-water-mask.png` | Distorção de UV com ruído animado só onde a máscara é 1; brilho pelo ângulo olho→sol |
 | Névoa à deriva dentro do midground | `midground-mist-mask.png` | Somar ruído animado à cor/alfa nas áreas de névoa (hoje a névoa é só procedural, entre camadas) |
-| Brilho bioluminescente | `foreground-emissive-mask.png` | **Já implementado** (`LayerGlowMaterial`): pulso em onda |
+| Brilho bioluminescente | `foreground-emissive-mask.png` | Implementado (`LayerGlowMaterial`), desligado na arte atual. As máscaras da arte anterior saíram do projeto (commit `e8aee56`); estas ideias precisam de máscaras novas |
 | Cachoeiras fluindo | Falta máscara (`midground-waterfall-mask.png`) | UV rolando verticalmente na máscara + espuma na base |
 | Cipós balançando | Falta máscara | Deslocamento senoidal de vértices ponderado pela máscara (precisa de plano subdividido) |
 

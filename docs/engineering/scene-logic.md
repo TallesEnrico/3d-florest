@@ -40,7 +40,7 @@ O fator `(D + depth)/D` compensa a perspectiva: um plano 2× mais distante preci
 
 - `depth` reproduz os fatores relativos do [asset-spec §4](../art/asset-spec.md#4-orçamento-de-paralaxe-e-overscan): com o foreground ancorado, o midground move 0,65 e o background 0,95 do deslocamento.
 - **Por que só o background tem overscan.** A abertura da moldura só toca a borda **superior** da tela (378 px de largura). Laterais e base são sempre cobertas pelo foreground. O midground é céu vazio no topo, então suas bordas nunca aparecem. Medido: nenhuma borda visível até 120 px na horizontal e 67 px na vertical de deslocamento (arte de 941 px de altura). Isso entra como `edgeMargin`, e o midground fica **pixel-alinhado à moldura, como pintado**. O background precisa de 1,12 para não mostrar a borda superior pela abertura quando desce.
-- **Consequência no neutro:** foreground e midground coincidem com `scene-reference-01.png`. O background (céu e ilhas distantes) aparece 12% maior que na pintura, o que é imperceptível como desalinhamento porque não há contato entre ele e a moldura.
+- **Consequência no neutro:** foreground e midground coincidem com as pinturas planas sobrepostas. O background (céu e ilhas distantes) aparece 12% maior que na pintura, o que é imperceptível como desalinhamento porque não há contato entre ele e a moldura.
 - A névoa é um gradiente suave, larga (overscan 1,6) e com bordas esmaecidas: nunca mostra corte.
 - Ordem de desenho explícita (`renderOrder`), materiais com `depthWrite: false`. Não há ordenação por distância.
 
@@ -106,7 +106,7 @@ Como cada camada se desloca `olho × k`, a moldura (k = 0) acompanha a página e
 | Névoa em faixas | `AtmosphericHaze` | Planos entre bg↔mid (depth 12) e mid↔fg (depth 1,6) | `haze[*]` |
 | Brilho do sol, respirando | `SunGlow` | Plano aditivo logo à frente do background, mesmo enquadramento | `sunGlow` (opacidade baixa: a área já é a mais clara da pintura) |
 | Pólen flutuante | `FloatingMotes` | 140 pontos em 3D entre depth 0,35 e 4: paralaxe real | `motes` |
-| Plantas bioluminescentes pulsando | `LayerGlowMaterial` | Material do foreground + `masks/foreground-emissive-mask.png` | `layers[foreground].glow` |
+| Plantas bioluminescentes pulsando (arte anterior; desligado na atual, sem máscara) | `LayerGlowMaterial` | Material do foreground + uma máscara emissiva | `layers[foreground].glow` |
 | Vinheta | CSS (`.scene__vignette`) | Sobre o canvas | `src/index.css` |
 
 Todos os shaders usam o relógio compartilhado `sceneTime`, avançado pelo `SceneClock`.

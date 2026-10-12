@@ -1,7 +1,5 @@
 import { BufferGeometry, Color, Float32BufferAttribute, Vector3 } from 'three'
 
-export const TAU = Math.PI * 2
-
 export const smoothstep = (edge0: number, edge1: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)))
   return t * t * (3 - 2 * t)

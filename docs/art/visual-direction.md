@@ -2,6 +2,8 @@
 
 > Documento de referência visual do projeto. Toda imagem, camada, shader, partícula ou elemento de UI criado nos próximos steps deve seguir esta direção.
 > Prompts e parâmetros de geração estão em [prompting-guide.md](./prompting-guide.md).
+>
+> **2026-10-12:** a arte do hero foi trocada (moldura de selva, vale, céu ao pôr do sol) e os arquivos citados nas seções de arquivos (PNG master, `concept/`, máscaras) saíram do projeto; só os WebP de entrega ficam. Ver [asset-spec](./asset-spec.md).
 
 ---
 

@@ -159,3 +159,4 @@ Antes de salvar qualquer imagem em `public/assets/environment/`:
 | 2026-10-11 | `concept/scene-reference-01.png` | Composto das 3 camadas tratadas | — | Referência mestre na posição neutra. O prompt v2 foi escrito a partir dela. |
 | 2026-10-11 | `masks/*.png`, `depth/layer-depth.png` | Derivados automaticamente das camadas | — | Ver [asset-spec §6–7](./asset-spec.md#6-máscaras-auxiliares-masks) |
 | 2026-10-11 | `background/`, `midground/`, `foreground/*.webp` | Derivados dos PNG master (step 7) | — | `cwebp -q 90 -alpha_q 100 -exact -sharp_yuv -m 6`; entrega de 1,2 MB ([asset-spec §3](./asset-spec.md#3-especificação-por-camada)) |
+| 2026-10-12 | Limpeza | — | — | Fora do projeto: PNG master, `concept/`, `masks/`, `depth/` e a arte anterior em `assets/`. Só os WebP de entrega ficam; o resto pode ser recuperado do commit `e8aee56`. |
