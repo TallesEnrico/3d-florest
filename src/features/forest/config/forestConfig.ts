@@ -107,11 +107,11 @@ export const forestConfig: ForestConfig = {
   lod: { trees: [14, 38, 100], plants: 32, props: 55, fadeSeconds: 0.6 },
 
   quality: [
-    { name: 'ultra', detail: 1, reach: 1, dpr: 1.25, shadowMap: 2048 },
-    { name: 'high', detail: 0.8, reach: 1, dpr: 1.25, shadowMap: 2048 },
-    { name: 'medium', detail: 0.6, reach: 0.85, dpr: 1, shadowMap: 1024 },
-    { name: 'low', detail: 0.45, reach: 0.7, dpr: 1, shadowMap: 1024 },
-    { name: 'minimum', detail: 0.35, reach: 0.55, dpr: 0.8, shadowMap: 512 },
+    { name: 'ultra', detail: 1, reach: 1, dpr: 1.25, shadowMap: 2048, foliage: 0 },
+    { name: 'high', detail: 0.8, reach: 1, dpr: 1.25, shadowMap: 2048, foliage: 0 },
+    { name: 'medium', detail: 0.6, reach: 0.85, dpr: 1, shadowMap: 1024, foliage: 1 },
+    { name: 'low', detail: 0.45, reach: 0.7, dpr: 1, shadowMap: 1024, foliage: 1 },
+    { name: 'minimum', detail: 0.35, reach: 0.55, dpr: 0.8, shadowMap: 512, foliage: 2 },
   ],
 
   assets: {

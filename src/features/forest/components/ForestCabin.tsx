@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { forestConfig } from '../config/forestConfig.ts'
 import type { RealisticForest } from '../models/buildRealisticForest.ts'
-import { useGltfExtensions, useKtx2Textures } from './forestLoaders.ts'
+import { useGltfExtensions, useKtx2Textures, usePreloadKtx2Textures } from './forestLoaders.ts'
 import { invalidateSunShadow } from './sunShadow.ts'
 import { warmUpForest } from './warmUpForest.ts'
 
@@ -21,6 +21,7 @@ interface ForestCabinProps {
  * placed in the clearing and warmed up on its own.
  */
 export function ForestCabin({ forest }: ForestCabinProps) {
+  usePreloadKtx2Textures(TEXTURES)
   const [props, interior] = useLoader(GLTFLoader, MODELS, useGltfExtensions())
   const textures = useKtx2Textures(TEXTURES)
   const gl = useThree((state) => state.gl)

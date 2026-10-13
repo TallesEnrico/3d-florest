@@ -68,6 +68,11 @@ export interface QualityTier {
   reach: number
   dpr: number
   shadowMap: number
+  /**
+   * Most detailed tree model drawn (0 = near model, densest needle cards; 2 = far model, a few
+   * large cards). Weak devices draw even the nearest trees with lighter foliage.
+   */
+  foliage: number
 }
 
 /** Tree models in the trees GLB: nodes `<model>_lod0` (near), `_lod1` (mid), `_lod2` (far). */

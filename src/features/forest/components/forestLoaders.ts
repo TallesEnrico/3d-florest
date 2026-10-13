@@ -31,6 +31,15 @@ export function useGltfExtensions(): (loader: GLTFLoader) => void {
 }
 
 /**
+ * Starts downloading KTX2 textures without suspending, so they load alongside the models
+ * instead of after them (each suspending hook would otherwise wait for the previous one).
+ */
+export function usePreloadKtx2Textures(urls: string[]) {
+  const gl = useThree((state) => state.gl)
+  useLoader.preload(ktx2Loader(gl), urls)
+}
+
+/**
  * Loads KTX2 textures (suspends while loading), already compressed for the GPU with their
  * mipmaps. Disposed on unmount.
  */

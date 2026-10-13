@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import { Suspense, useEffect, useState } from 'react'
 import { sceneConfig } from '../config/sceneConfig.ts'
 import type { ScrollProgressReader, ViewInput, ViewInputReader } from '../types/index.ts'
+import { markSceneReady } from '../utils/sceneReady.ts'
 import { AtmosphericHaze } from './AtmosphericHaze.tsx'
 import { FloatingMotes } from './FloatingMotes.tsx'
 import { LayeredEnvironment } from './LayeredEnvironment.tsx'
@@ -89,7 +90,12 @@ export function SceneCanvas({
           <SunGlow />
           <AtmosphericHaze />
           <FloatingMotes />
-          <ReadySignal onReady={() => setReady(true)} />
+          <ReadySignal
+            onReady={() => {
+              setReady(true)
+              markSceneReady()
+            }}
+          />
         </Suspense>
       </Canvas>
       <div className="scene__vignette" aria-hidden="true" />

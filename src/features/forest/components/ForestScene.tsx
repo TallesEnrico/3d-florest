@@ -66,7 +66,7 @@ export function ForestScene({ paused, getViewInput = readNoInput }: ForestSceneP
       <SceneController getViewInput={getViewInput} />
       {loadAssets && (
         <Suspense fallback={null}>
-          <RealisticForest detail={tier.detail} reach={tier.reach} onReady={() => setWarm(true)} />
+          <RealisticForest detail={tier.detail} reach={tier.reach} foliage={tier.foliage} onReady={() => setWarm(true)} />
           {/* Measures only while the forest is built, warmed up and on screen, and starts afresh
               each time it comes back into view: it times the gaps between frames, so a paused
               canvas or the one-time build would otherwise read as a slow device. */}

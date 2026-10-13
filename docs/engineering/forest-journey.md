@@ -98,7 +98,8 @@ Total servido: ~21 MB no desktop e 6,6 MB no celular, carregados depois da prime
 
 ### Carregamento em duas etapas e KTX2
 
-- **Primeira etapa** (`RealisticForest`): árvores, plantas, pedras, chão, trilha, rio e HDRI. Ao terminar de montar e aquecer, avisa a página (`onReady`).
+- **Quando começa:** no desktop, assim que a página fica ociosa (a jornada já está a uma tela de distância). No celular, logo que o hero termina de carregar (`scene/utils/sceneReady.ts`), ao rolar até a jornada ou, no máximo, após 6 s. Antes o celular esperava os 6 s ou a rolagem, e a floresta ainda estava baixando quando a pessoa chegava nela.
+- **Primeira etapa** (`RealisticForest`): árvores, plantas, pedras, chão, trilha, rio e HDRI, pedidos todos ao mesmo tempo (`usePreloadKtx2Textures` e `useEnvironment.preload`; sem isso, cada hook que suspende esperava o anterior terminar). Ao terminar de montar e aquecer, avisa a página (`onReady`).
 - **Segunda etapa** (`ForestCabin`, num `Suspense` próprio): só então pede `cabin_props`, `cabin_interior` e as texturas da cabana, monta a cabana com `addCabin` (no terreno já calculado), chama `invalidateSunShadow()` e aquece só o grupo da cabana com `warmUpForest`. A cabana aparece capítulos depois, velada pela névoa, então nada falta na tela. A distribuição não muda: ela usa só a configuração da cabana, não os modelos.
 - **KTX2:** as texturas avulsas (`useKtx2Textures`) e as embutidas nos GLB (`KHR_texture_basisu`) passam por um único `KTX2Loader` com 2 workers (`components/forestLoaders.ts`). O transcoder Basis vem do `three` e o Vite o empacota com hash. Nada é pedido a terceiros. As texturas avulsas são gravadas com a origem embaixo, no lugar do `flipY`, que texturas comprimidas não aceitam.
 
@@ -224,11 +225,12 @@ O resultado é folhagem de abeto real com menos triângulos (árvore A, perto: 1
   - `detail`: fator das distâncias de troca entre níveis de detalhe;
   - `reach`: fator da distância em que árvores, plantas e pedras somem na névoa;
   - `dpr`: densidade de pixels máxima;
-  - `shadowMap`: resolução do mapa de sombra.
+  - `shadowMap`: resolução do mapa de sombra;
+  - `foliage`: modelo de árvore mais detalhado desenhado, mesmo de perto. 0 = modelo próximo, com os cartões de agulha mais densos; 2 = modelo distante, com poucos cartões grandes. `ultra`/`high` usam 0, `medium`/`low` 1 e `minimum` 2. Os materiais desses modelos já são compilados no aquecimento (as árvores distantes os usam), então trocar de nível não compila shader. A sombra usa o mesmo limite.
 - O nível inicial é estimado em `utils/deviceQuality.ts` a partir da GPU (`WEBGL_debug_renderer_info`), dos núcleos (`hardwareConcurrency`), da memória (`deviceMemory`, só no Chrome) e de a tela ser pequena ou de toque. Desktop com GPU dedicada ou Apple M começa em `ultra`; GPU integrada Intel, em `high`; celular topo de linha, em `medium`; iPhone e intermediários, em `low`; Mali G5x, Adreno 3xx–6xx com pouca memória e PowerVR, em `minimum`.
 - Um `PerformanceMonitor` começa a medir só depois que a floresta carrega e reavalia a cada 2,5 s: desce um nível abaixo de 52 fps em telas de 60 Hz (90 fps em 120 Hz) e sobe um nível perto da taxa máxima. Para depois de `níveis + 1` mudanças, para não oscilar.
 - QA: `?quality=<nível>` fixa o nível e desliga o monitor.
-- Triângulos visíveis no celular (variantes leves, capítulos Recursos e Experimente): `ultra` 2,5–2,7 M; `high` 2,2–2,5 M; `medium` 1,7–2,2 M; `low` 1,3–1,7 M; `minimum` 1,0–1,1 M.
+- Triângulos visíveis no celular (variantes leves, capítulos Recursos e Experimente): `ultra` 2,5–2,7 M; `high` 2,2–2,5 M; `medium` 1,7–2,2 M; `low` 1,3–1,7 M; `minimum` ~0,8 M (só as árvores: 430–580 k, contra 720–810 k no `low`).
 - Telas até 767 px usam densidade 0,6.
 
 **Medido** (Chrome sem limite de fps, GPU Apple M3 Pro, tela Retina 2×, janela 1512×945; comparação intercalada na mesma sessão):

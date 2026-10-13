@@ -1,4 +1,4 @@
-import { Environment } from '@react-three/drei'
+import { Environment, useEnvironment } from '@react-three/drei'
 import { useFrame, useLoader, useThree } from '@react-three/fiber'
 import { Suspense, useEffect, useRef, useState } from 'react'
 import type { Group } from 'three'
@@ -7,7 +7,7 @@ import { forestConfig } from '../config/forestConfig.ts'
 import { usePrefersReducedMotion } from '../../scene/hooks/usePrefersReducedMotion.ts'
 import { buildRealisticForest, type RealisticForest as RealisticForestModel } from '../models/buildRealisticForest.ts'
 import { ForestCabin } from './ForestCabin.tsx'
-import { useGltfExtensions, useKtx2Textures } from './forestLoaders.ts'
+import { useGltfExtensions, useKtx2Textures, usePreloadKtx2Textures } from './forestLoaders.ts'
 import { invalidateSunShadow, sunShadow } from './sunShadow.ts'
 import { warmUpForest } from './warmUpForest.ts'
 
@@ -31,6 +31,8 @@ interface RealisticForestProps {
   /** 1 = full detail; lower values shorten the distances at which detail drops (slow devices). */
   detail: number
   reach: number
+  /** Most detailed tree model drawn (lighter foliage on slow devices). */
+  foliage: number
   /** Called once the forest is built and the GPU warmed up (its first frames already drawn). */
   onReady?: () => void
 }
@@ -42,7 +44,9 @@ interface RealisticForestProps {
  * atmosphere meanwhile). Loaded as its own chunk (lazy), so the page's first load stays light.
  * The cabin follows in a second stage (`ForestCabin`), once the forest is ready.
  */
-export function RealisticForest({ detail, reach, onReady }: RealisticForestProps) {
+export function RealisticForest({ detail, reach, foliage, onReady }: RealisticForestProps) {
+  usePreloadKtx2Textures(TEXTURES)
+  useEnvironment.preload({ files: assets.environment })
   const [trees, props] = useLoader(GLTFLoader, [assets.trees, assets.props], useGltfExtensions())
   const textures = useKtx2Textures(TEXTURES)
   const holder = useRef<Group>(null)
@@ -111,8 +115,9 @@ export function RealisticForest({ detail, reach, onReady }: RealisticForestProps
   // The river flows unless the visitor prefers reduced motion (then it holds still).
   const reducedMotion = usePrefersReducedMotion()
   useFrame(({ camera, clock }, delta) => {
-    forest.current?.update(camera.position, detail, Math.min(delta, 0.1), reducedMotion ? 0 : clock.elapsedTime, reach)
+    forest.current?.update(camera.position, detail, Math.min(delta, 0.1), reducedMotion ? 0 : clock.elapsedTime, reach, foliage)
   })
+  useEffect(() => invalidateSunShadow(), [foliage])
 
   return (
     <>

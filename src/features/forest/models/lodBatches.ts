@@ -20,9 +20,10 @@ export interface LodBatches {
    * Picks each instance's level of detail from its distance to the camera; when it changes, the
    * two levels dissolve into each other over `fadeSeconds` (`delta` = seconds since the last
    * call). `detail` < 1 brings the switches between levels closer; `reach` < 1 brings the last
-   * distance (where instances disappear into the haze) closer.
+   * distance (where instances disappear into the haze) closer; `finest` is the most detailed
+   * level drawn, even up close.
    */
-  update: (camera: Vector3, detail: number, delta: number, reach?: number) => void
+  update: (camera: Vector3, detail: number, delta: number, reach?: number, finest?: number) => void
   /**
    * Shows every instance at one level (clamped to what each model has), ignoring distance and
    * skipping fades — for drawing the static shadow map; `null` returns to distance-based
@@ -195,18 +196,21 @@ export function createLodBatches(
   const lastCamera = new Vector3()
   let lastDetail = 1
   let lastReach = 1
+  let lastFinest = 0
   let forced = false
-  const update = (camera: Vector3, detail = 1, delta = 0, reach = 1) => {
+  const update = (camera: Vector3, detail = 1, delta = 0, reach = 1, finest = 0) => {
     lastCamera.copy(camera)
     lastDetail = detail
     lastReach = reach
+    lastFinest = finest
     if (forced) return
+    const floor = Math.min(finest, last)
     for (const item of tracked) {
       const distance = Math.hypot(item.x - camera.x, item.z - camera.z)
       let target = HIDDEN
       for (let k = 0; k <= last; k++) {
         if (distance < threshold(k, detail, reach)) {
-          target = k
+          target = Math.max(k, floor)
           break
         }
       }
@@ -245,7 +249,7 @@ export function createLodBatches(
         item.lod = UNSET
         item.next = null
       }
-      update(lastCamera, lastDetail, 0, lastReach)
+      update(lastCamera, lastDetail, 0, lastReach, lastFinest)
       return
     }
     forced = true

@@ -46,9 +46,9 @@ export interface RealisticForest {
   /**
    * Per frame: level of detail from the camera position (`detail` < 1 shortens the distances;
    * `delta` = seconds since the last frame, for the dissolves) and the river's flow (`elapsed`
-   * seconds; keep it constant to stop the water).
+   * seconds; keep it constant to stop the water). `foliage` = most detailed tree model drawn.
    */
-  update: (camera: Vector3, detail: number, delta: number, elapsed: number, reach: number) => void
+  update: (camera: Vector3, detail: number, delta: number, elapsed: number, reach: number, foliage: number) => void
   /** On while the static shadow map is drawn: every tree and prop at a fixed level of detail. */
   shadowPass: (on: boolean) => void
   /**
@@ -263,6 +263,7 @@ export async function buildRealisticForest({ config, trees, props, ground, densi
   group.add(floor, path, stream, batches.trees.group, batches.ferns.group, batches.props.group)
 
   let lodge: Cabin | null = null
+  let finestTrees = 0
   const removeCabin = () => {
     if (!lodge) return
     group.remove(lodge.group)
@@ -290,13 +291,14 @@ export async function buildRealisticForest({ config, trees, props, ground, densi
     removeCabin,
     shadowPass: (on) => {
       // Mid-level trees: full silhouettes everywhere, a fraction of the near-level triangles.
-      batches.trees.forceLod(on ? 1 : null)
+      batches.trees.forceLod(on ? Math.max(1, finestTrees) : null)
       batches.props.forceLod(on ? 0 : null)
     },
-    update: (camera, detail, delta, elapsed, reach) => {
+    update: (camera, detail, delta, elapsed, reach, foliage) => {
+      finestTrees = foliage
       water.update(elapsed)
       lodge?.update(elapsed, camera)
-      batches.trees.update(camera, detail, delta, reach)
+      batches.trees.update(camera, detail, delta, reach, foliage)
       batches.ferns.update(camera, 1, delta, reach)
       batches.props.update(camera, detail, delta, reach)
     },

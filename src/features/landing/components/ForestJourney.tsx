@@ -5,6 +5,7 @@ import { journey, stepPath } from '../../forest/journey/journeyState.ts'
 import { useJourneyTracking } from '../../forest/journey/useJourneyTracking.ts'
 import { useHeadTrackingStore } from '../../headTracking/store/headTrackingStore.ts'
 import type { ViewInputReader } from '../../scene/types/index.ts'
+import { onSceneReady } from '../../scene/utils/sceneReady.ts'
 import { contentSections } from '../config/landingContent.ts'
 import { useInView } from '../hooks/useInView.ts'
 import { usePointerInput } from '../hooks/usePointerInput.ts'
@@ -39,8 +40,13 @@ export function ForestJourney({ getViewInput, children }: ForestJourneyProps) {
   if (LITE_ASSETS && visible && !liteStarted) setLiteStarted(true)
   useEffect(() => {
     if (!LITE_ASSETS || liteStarted) return
-    const id = setTimeout(() => setLiteStarted(true), LITE_START_DELAY)
-    return () => clearTimeout(id)
+    const start = () => setLiteStarted(true)
+    const id = setTimeout(start, LITE_START_DELAY)
+    const unsubscribe = onSceneReady(start)
+    return () => {
+      clearTimeout(id)
+      unsubscribe()
+    }
   }, [liteStarted])
   const mountScene = LITE_ASSETS ? liteStarted : near
   const [announcement, setAnnouncement] = useState('')
