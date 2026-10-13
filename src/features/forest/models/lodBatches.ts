@@ -50,9 +50,9 @@ interface Tracked {
   x: number
   z: number
   tint: [r: number, g: number, b: number]
-  /** Level shown (-1 = hidden, UNSET before the first update). */
+  /** Distance band shown (-1 = hidden, UNSET before the first update); drawn as `levelOf(band)`. */
   lod: number
-  /** Level being dissolved into, or null when no transition is running. */
+  /** Band being dissolved into, or null when no transition is running. */
   next: number | null
   /** Transition progress 0..1. */
   t: number
@@ -101,6 +101,7 @@ export function createLodBatches(
   models.forEach((model) =>
     model.lods.flat().forEach(({ material, geometry }) => {
       const entry = byMaterial.get(material) ?? { geometries: [], vertices: 0, indices: 0, instances: 0 }
+      if (entry.geometries.includes(geometry)) return
       entry.geometries.push(geometry)
       entry.vertices += geometry.getAttribute('position').count
       entry.indices += geometry.index?.count ?? 0
@@ -182,12 +183,16 @@ export function createLodBatches(
   const fromRank = (r: number) => (r >= distances.length ? HIDDEN : r)
   const threshold = (r: number, detail: number, reach: number) => (r < last ? distances[r] * detail : distances[r] * reach)
 
+  const coarsest = Math.max(...models.map((model) => model.lods.length)) - 1
+  let floor = 0
+  const geometryFor = (slot: Slot, band: number) => slot.geometries[Math.min(Math.max(band, floor), slot.geometries.length - 1)]
+
   /** Draws `from` dissolving into `to` at progress t (t = 0: only `from`; t = 1: only `to`). */
   const apply = (item: Tracked, from: number, to: number, t: number) => {
     const keep = 1 - t
     for (const slot of item.slots) {
-      const outgoing = from >= 0 && keep > 0 ? slot.geometries[from] : -1
-      const incoming = to >= 0 && t > 0 ? slot.geometries[to] : -1
+      const outgoing = from >= 0 && keep > 0 ? geometryFor(slot, from) : -1
+      const incoming = to >= 0 && t > 0 ? geometryFor(slot, to) : -1
       show(slot, 0, outgoing, t > 0 ? keep : FADE_FULL, item)
       show(slot, 1, incoming, outgoing >= 0 ? fadeInComplement(keep) : t >= 1 ? FADE_FULL : t, item)
     }
@@ -196,21 +201,27 @@ export function createLodBatches(
   const lastCamera = new Vector3()
   let lastDetail = 1
   let lastReach = 1
-  let lastFinest = 0
   let forced = false
   const update = (camera: Vector3, detail = 1, delta = 0, reach = 1, finest = 0) => {
     lastCamera.copy(camera)
     lastDetail = detail
     lastReach = reach
-    lastFinest = finest
+    const nextFloor = Math.min(finest, coarsest)
+    if (nextFloor !== floor) {
+      // Quality changed: every instance takes its new level at once.
+      floor = nextFloor
+      for (const item of tracked) {
+        item.lod = UNSET
+        item.next = null
+      }
+    }
     if (forced) return
-    const floor = Math.min(finest, last)
     for (const item of tracked) {
       const distance = Math.hypot(item.x - camera.x, item.z - camera.z)
       let target = HIDDEN
       for (let k = 0; k <= last; k++) {
         if (distance < threshold(k, detail, reach)) {
-          target = Math.max(k, floor)
+          target = k
           break
         }
       }
@@ -249,7 +260,7 @@ export function createLodBatches(
         item.lod = UNSET
         item.next = null
       }
-      update(lastCamera, lastDetail, 0, lastReach, lastFinest)
+      update(lastCamera, lastDetail, 0, lastReach, floor)
       return
     }
     forced = true
@@ -273,8 +284,9 @@ export function createLodBatches(
         if (item.lod < 0 && item.next === null) continue
         visible++
         for (const slot of item.slots) {
-          if (item.lod >= 0) triangles += slot.triangles[item.lod] ?? 0
-          if (item.next !== null && item.next >= 0) triangles += slot.triangles[item.next] ?? 0
+          const count = (band: number) => slot.triangles[Math.min(Math.max(band, floor), slot.triangles.length - 1)] ?? 0
+          if (item.lod >= 0) triangles += count(item.lod)
+          if (item.next !== null && item.next >= 0) triangles += count(item.next)
         }
       }
       return { instances: tracked.length, visible, triangles }

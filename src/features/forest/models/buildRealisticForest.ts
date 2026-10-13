@@ -1,10 +1,12 @@
 import {
   type BufferGeometry,
+  DoubleSide,
   Float32BufferAttribute,
   FrontSide,
   Group,
   type Material,
   Mesh,
+  MeshLambertMaterial,
   MeshStandardMaterial,
   type Object3D,
   RepeatWrapping,
@@ -20,6 +22,7 @@ import type { ForestConfig } from '../types/index.ts'
 import { bakeParts, reachBelow } from './bakeParts.ts'
 import { createLodBatches, type LodInstance, type LodModel } from './lodBatches.ts'
 import { buildCabin, type Cabin, type CabinTextures } from './cabin.ts'
+import { solidCrown } from './solidCrown.ts'
 import { createWater } from './water.ts'
 import { yieldToMain } from './yieldToMain.ts'
 
@@ -64,6 +67,12 @@ export interface RealisticForest {
 const FERNS = ['fern_02_a', 'fern_02_b', 'fern_02_c', 'fern_02_d']
 const ROCKS = [1, 2, 3, 4, 5, 6].map((n) => `rock_moss_set_01_rock0${n}`)
 const ROOTS = ['pine_roots_a', 'pine_roots_b']
+/**
+ * The extra, simplest tree level (only drawn when `foliage` asks for it, on the slowest devices):
+ * no needles, a third of the far model's cards as plain opaque rectangles.
+ */
+const CROWN = { keep: 0.5, needles: 4, width: 0.3, spread: 0.6, shade: [0.45, 0.9] as [number, number] }
+const CROWN_COLOR = '#2f3b27'
 /** Head height used to measure how far low branches reach toward the paths. */
 const HEAD_HEIGHT = 4
 
@@ -173,6 +182,8 @@ export async function buildRealisticForest({ config, trees, props, ground, densi
   const terrain = createTerrain(layout.seed + 1, layout, river)
 
   // Each step is a few tens of milliseconds at most; between them the page keeps scrolling.
+  const crownMaterial = new MeshLambertMaterial({ name: 'fir_crown_solid', color: CROWN_COLOR, vertexColors: true, side: DoubleSide })
+  keepFoliageNormals(crownMaterial)
   const treeModels: LodModel[] = []
   for (const species of layout.species) {
     const lods = []
@@ -180,6 +191,8 @@ export async function buildRealisticForest({ config, trees, props, ground, densi
       lods.push(bakeParts(trees, `${species.model}_lod${k}`))
       await yieldToMain()
     }
+    lods.push(solidCrown(lods[lods.length - 1], (part) => part.material.name.includes('twig'), crownMaterial, { ...CROWN, seed: layout.seed + 11 }))
+    await yieldToMain()
     treeModels.push({ name: species.model, lods })
   }
   const shapes = treeModels.map((model, i) => ({
@@ -308,6 +321,7 @@ export async function buildRealisticForest({ config, trees, props, ground, densi
       water.dispose()
       removeCabin()
       baked.forEach((g) => g.dispose())
+      crownMaterial.dispose()
       for (const mesh of [floor, path]) {
         mesh.geometry.dispose()
         ;(mesh.material as Material).dispose()
