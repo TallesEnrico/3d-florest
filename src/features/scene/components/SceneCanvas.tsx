@@ -2,10 +2,13 @@ import { PerformanceMonitor } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { Suspense, useEffect, useState } from 'react'
 import { sceneConfig } from '../config/sceneConfig.ts'
+import { useActivityLevel } from '../hooks/useActivityLevel.ts'
 import type { ScrollProgressReader, ViewInput, ViewInputReader } from '../types/index.ts'
+import { frameloopFor } from '../utils/activity.ts'
 import { markSceneReady } from '../utils/sceneReady.ts'
 import { AtmosphericHaze } from './AtmosphericHaze.tsx'
 import { FloatingMotes } from './FloatingMotes.tsx'
+import { IdleFrames } from './IdleFrames.tsx'
 import { LayeredEnvironment } from './LayeredEnvironment.tsx'
 import { SceneClock } from './SceneClock.tsx'
 import { SunGlow } from './SunGlow.tsx'
@@ -38,16 +41,18 @@ export function SceneCanvas({
   paused = false,
   getScrollProgress,
 }: SceneCanvasProps) {
-  const { camera } = sceneConfig
+  const { camera, activity: activityConfig } = sceneConfig
   const [ready, setReady] = useState(false)
   const [dpr, setDpr] = useState(() => Math.min(window.devicePixelRatio, MAX_DPR))
+  const activity = useActivityLevel()
+  const fullRate = !paused && activity === 'active'
 
   return (
     <div className={ready ? 'scene scene--ready' : 'scene'}>
       <Canvas
         // No tone mapping: keep the approved palette (docs/art).
         flat
-        frameloop={paused ? 'never' : 'always'}
+        frameloop={frameloopFor(paused, activity)}
         onCreated={({ gl }) => {
           // Dev only: lets tools/perf measure the hero's GPU cost.
           if (import.meta.env.DEV) (window as { __heroRenderer?: unknown }).__heroRenderer = gl
@@ -75,7 +80,7 @@ export function SceneCanvas({
             After 3 flip-flops it settles at 1× instead of oscillating (each switch reallocates).
             Mounted only while rendering: it times the gaps between frames, so the pause while
             the hero is scrolled away would otherwise read as a slow device. */}
-        {!paused && (
+        {fullRate && (
           <PerformanceMonitor
             flipflops={3}
             onDecline={() => setDpr(1)}
@@ -83,6 +88,7 @@ export function SceneCanvas({
             onFallback={() => setDpr(1)}
           />
         )}
+        {!paused && activity === 'idle' && <IdleFrames fps={activityConfig.idleFps} />}
         <SceneClock />
         <WindowCamera getViewInput={getViewInput} getScrollProgress={getScrollProgress} />
         <Suspense fallback={null}>

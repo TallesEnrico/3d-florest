@@ -38,6 +38,8 @@ Orçamentos, o que já foi feito, como medir e o que fazer depois. Critérios: [
 | Offset lido com `getState()` dentro de `useFrame` | Zero re-render do React por frame (só o painel de debug assina o offset) |
 | Zero alocação no loop (`WindowCamera`, ponte do `App`) | Sem pressão de GC durante o movimento |
 | Câmera liberada com a aba oculta; rAF pausado pelo navegador | Nada roda em segundo plano |
+| Ritmo por atividade (`scene/utils/activity.ts`, ajustes em `sceneConfig.activity`): ritmo cheio com interação (mouse, toque, tecla, rolagem ou câmera ligada); 30 fps após 4 s sem entrada; sem desenho contínuo após 45 s ou com a janela sem foco ou a aba oculta (`frameloop="demand"`: só redesenha em resize ou carga de conteúdo). Animações CSS pausadas (`:root[data-activity]`) quando parado ou fora da página. `PerformanceMonitor` só no ritmo cheio | Página parada aberta deixa de manter a GPU a 60–120 fps: 120 → 30 → 0 quadros/s (hero e floresta, medido no Chrome em tela de 120 Hz) |
+| Sem `backdrop-filter` sobre os canvases (prompt da câmera e trilho da navegação pela cabeça usam fundo mais opaco) | O blur forçava recompor a área a cada quadro do WebGL |
 | `prefers-reduced-motion` congela o relógio | Shaders param de animar |
 
 ## Como medir
@@ -57,5 +59,4 @@ Cada camada 1672×941 RGBA = 6,3 MB + mipmaps (×1,33) ≈ **8,4 MB** → ~25 MB
 1. **Conferir o servidor**: o `.htaccess` só vale com `mod_deflate`, `mod_headers` e `AllowOverride` ligados.
 2. **KTX2 nas camadas do hero** se houver upscale (hoje são WebP, 1,35 MB).
 3. **Web Worker para o MediaPipe** se a inferência passar de ~12 ms em máquinas-alvo (libera a thread principal para o render).
-4. **`frameloop="demand"`** com `prefers-reduced-motion` e sem entrada: hoje o loop roda sempre por causa da deriva e dos efeitos.
-5. **Pré-carregar** as texturas com `<link rel="preload" as="image">` no `index.html`.
+4. **Pré-carregar** as texturas com `<link rel="preload" as="image">` no `index.html`.

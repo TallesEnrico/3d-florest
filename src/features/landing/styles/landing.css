@@ -570,8 +570,7 @@ html.is-menu-open {
   padding: 10px 8px;
   border: 1px solid var(--color-line);
   border-radius: 999px;
-  background: rgb(10 22 24 / 0.6);
-  backdrop-filter: blur(10px);
+  background: rgb(10 22 24 / 0.85);
   color: var(--color-text-muted);
 }
 
@@ -1161,4 +1160,13 @@ html.is-menu-open {
     align-content: start;
     padding-top: calc(var(--header-height) + 16px);
   }
+}
+
+:root[data-activity='away'] *,
+:root[data-activity='away'] *::before,
+:root[data-activity='away'] *::after,
+:root[data-activity='asleep'] *,
+:root[data-activity='asleep'] *::before,
+:root[data-activity='asleep'] *::after {
+  animation-play-state: paused !important;
 }

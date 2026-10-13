@@ -7,8 +7,7 @@
   width: min(560px, calc(100vw - 32px));
   padding: 14px 18px;
   border-radius: 16px;
-  background: rgb(10 22 24 / 0.55);
-  backdrop-filter: blur(12px);
+  background: rgb(10 22 24 / 0.82);
   color: #f4ece4;
   font: 15px/1.45 var(--font-body, system-ui, -apple-system, 'Segoe UI', sans-serif);
   text-align: center;

@@ -114,8 +114,11 @@ export function RealisticForest({ detail, reach, foliage, onReady }: RealisticFo
 
   // The river flows unless the visitor prefers reduced motion (then it holds still).
   const reducedMotion = usePrefersReducedMotion()
-  useFrame(({ camera, clock }, delta) => {
-    forest.current?.update(camera.position, detail, Math.min(delta, 0.1), reducedMotion ? 0 : clock.elapsedTime, reach, foliage)
+  const flowTime = useRef(0)
+  useFrame(({ camera }, delta) => {
+    const step = Math.min(delta, 0.1)
+    flowTime.current += step
+    forest.current?.update(camera.position, detail, step, reducedMotion ? 0 : flowTime.current, reach, foliage)
   })
   useEffect(() => invalidateSunShadow(), [foliage])
 

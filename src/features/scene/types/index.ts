@@ -96,6 +96,11 @@ export interface SceneConfig {
     /** Seconds per breathing cycle. */
     period: number
   }
+  activity: {
+    idleAfter: number
+    sleepAfter: number
+    idleFps: number
+  }
   motes: {
     count: number
     /** Depth range (screen heights behind the screen) where motes float. */
@@ -126,6 +131,8 @@ export interface ViewInput {
 }
 
 export type ViewInputReader = () => ViewInput
+
+export type ActivityLevel = 'active' | 'idle' | 'asleep' | 'away'
 
 /** 0 while the scene's top is at the viewport top, 1 once it has scrolled by its own height. */
 export type ScrollProgressReader = () => number

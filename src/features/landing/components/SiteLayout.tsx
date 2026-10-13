@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { MAIN_ID } from '../config/landingContent.ts'
 import { useActiveSection } from '../hooks/useActiveSection.ts'
+import { usePageActivity } from '../hooks/usePageActivity.ts'
 import { useScrolledPast } from '../hooks/useScrolledPast.ts'
 import '../styles/tokens.css'
 import '../styles/landing.css'
@@ -12,6 +13,7 @@ import { SiteHeader } from './SiteHeader.tsx'
 export function SiteLayout({ children }: { children: ReactNode }) {
   const [sentinel, scrolled] = useScrolledPast()
   const activeId = useActiveSection()
+  usePageActivity()
 
   return (
     <>

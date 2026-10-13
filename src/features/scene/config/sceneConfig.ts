@@ -115,6 +115,12 @@ export const sceneConfig: SceneConfig = {
     period: 9,
   },
 
+  activity: {
+    idleAfter: 4,
+    sleepAfter: 45,
+    idleFps: 30,
+  },
+
   motes: {
     // Warm pollen between the frame and the valley: real 3D parallax, ~0 cost.
     count: 140,

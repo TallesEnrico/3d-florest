@@ -2,7 +2,11 @@ import { PerformanceMonitor } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { NeutralToneMapping } from 'three'
+import { IdleFrames } from '../../scene/components/IdleFrames.tsx'
+import { sceneConfig } from '../../scene/config/sceneConfig.ts'
+import { useActivityLevel } from '../../scene/hooks/useActivityLevel.ts'
 import type { ViewInput, ViewInputReader } from '../../scene/types/index.ts'
+import { frameloopFor } from '../../scene/utils/activity.ts'
 import { forestConfig, LITE_ASSETS } from '../config/forestConfig.ts'
 import { useIdleReady } from '../hooks/useIdleReady.ts'
 import { estimateQualityTier } from '../utils/deviceQuality.ts'
@@ -47,6 +51,8 @@ export function ForestScene({ paused, getViewInput = readNoInput }: ForestSceneP
   const [warm, setWarm] = useState(false)
   const tier = TIERS[tierIndex]
   const dpr = Math.min(window.devicePixelRatio, tier.dpr)
+  const activity = useActivityLevel()
+  const fullRate = !paused && activity === 'active'
   useEffect(() => {
     if (import.meta.env.DEV) window.__forestQuality = tier.name
   }, [tier])
@@ -54,7 +60,7 @@ export function ForestScene({ paused, getViewInput = readNoInput }: ForestSceneP
   return (
     <Canvas
       className="forest-scene__canvas"
-      frameloop={paused ? 'never' : 'always'}
+      frameloop={frameloopFor(paused, activity)}
       shadows="percentage"
       dpr={dpr}
       gl={{ antialias: true, powerPreference: 'high-performance', toneMapping: NeutralToneMapping, toneMappingExposure: atmosphere.exposure }}
@@ -70,7 +76,7 @@ export function ForestScene({ paused, getViewInput = readNoInput }: ForestSceneP
           {/* Measures only while the forest is built, warmed up and on screen, and starts afresh
               each time it comes back into view: it times the gaps between frames, so a paused
               canvas or the one-time build would otherwise read as a slow device. */}
-          {warm && !paused && PINNED_TIER < 0 && (
+          {warm && fullRate && PINNED_TIER < 0 && (
             <PerformanceMonitor
               flipflops={TIERS.length + 1}
               bounds={MONITOR_BOUNDS}
@@ -81,6 +87,7 @@ export function ForestScene({ paused, getViewInput = readNoInput }: ForestSceneP
         </Suspense>
       )}
       <LightShafts />
+      {!paused && activity === 'idle' && <IdleFrames fps={sceneConfig.activity.idleFps} />}
     </Canvas>
   )
 }
