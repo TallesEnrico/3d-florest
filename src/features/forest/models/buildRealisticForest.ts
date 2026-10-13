@@ -19,7 +19,7 @@ import { buildGround, buildTrail, createTerrain } from '../procedural/terrain.ts
 import type { ForestConfig } from '../types/index.ts'
 import { bakeParts, reachBelow } from './bakeParts.ts'
 import { createLodBatches, type LodInstance, type LodModel } from './lodBatches.ts'
-import { buildCabin, type CabinTextures } from './cabin.ts'
+import { buildCabin, type Cabin, type CabinTextures } from './cabin.ts'
 import { createWater } from './water.ts'
 import { yieldToMain } from './yieldToMain.ts'
 
@@ -37,10 +37,6 @@ export interface RealisticForestInput {
   /** Root of the ground-cover GLB (ferns, rocks, stump, fallen trunk, roots). */
   props: Object3D
   ground: { litter: LoadedTextureSet; trail: LoadedTextureSet }
-  /** Roots of the cabin's yard props and furniture GLBs, and the cabin's materials. */
-  cabinProps: Object3D
-  cabinInterior: Object3D
-  cabin: CabinTextures
   /** 1 = full forest; lower on small screens. */
   density: number
 }
@@ -55,6 +51,12 @@ export interface RealisticForest {
   update: (camera: Vector3, detail: number, delta: number, elapsed: number, reach: number) => void
   /** On while the static shadow map is drawn: every tree and prop at a fixed level of detail. */
   shadowPass: (on: boolean) => void
+  /**
+   * Second stage: places the cabin (yard props, furniture GLB roots and its materials) in the
+   * clearing, on the forest's terrain. Returns the cabin's group, for warming it up.
+   */
+  addCabin: (cabinProps: Object3D, cabinInterior: Object3D, textures: CabinTextures) => Group
+  removeCabin: () => void
   stats: () => Record<string, { instances: number; visible: number; triangles: number }>
   dispose: () => void
 }
@@ -161,10 +163,10 @@ function keepFoliageNormals(material: Material) {
 /**
  * Assembles the photoreal forest from the loaded assets: seeded placement (corridor, clearing,
  * river, framing trees), scanned trees/plants/rocks drawn in batches with distance-based detail,
- * the textured ground with the worn trail, the river between chapters 3 and 4, and the log
- * cabin in the clearing at the end.
+ * the textured ground with the worn trail and the river between chapters 3 and 4. The log cabin
+ * in the clearing at the end comes later, through `addCabin`.
  */
-export async function buildRealisticForest({ config, trees, props, ground, cabinProps, cabinInterior, cabin, density }: RealisticForestInput): Promise<RealisticForest> {
+export async function buildRealisticForest({ config, trees, props, ground, density }: RealisticForestInput): Promise<RealisticForest> {
   const { layout, lod, palette, shots } = config
   const rng = createRng(layout.seed)
   const river = createRiver(layout)
@@ -258,22 +260,34 @@ export async function buildRealisticForest({ config, trees, props, ground, cabin
   stream.name = 'river'
   stream.receiveShadow = true
 
-  await yieldToMain()
-  const lodge = buildCabin(
-    layout.cabin,
-    cabin,
-    cabinProps,
-    cabinInterior,
-    props.getObjectByName('tree_stump_01') ?? null,
-    terrain.height(layout.cabin.center[0], layout.cabin.center[1]),
-    config.atmosphere.fog.density,
-  )
+  group.add(floor, path, stream, batches.trees.group, batches.ferns.group, batches.props.group)
 
-  group.add(floor, path, stream, lodge.group, batches.trees.group, batches.ferns.group, batches.props.group)
+  let lodge: Cabin | null = null
+  const removeCabin = () => {
+    if (!lodge) return
+    group.remove(lodge.group)
+    lodge.dispose()
+    lodge = null
+  }
 
   const baked = [...treeModels, ...fernModels, ...propModels].flatMap((m) => m.lods.flat().map((p) => p.geometry))
   return {
     group,
+    addCabin: (cabinProps, cabinInterior, textures) => {
+      removeCabin()
+      lodge = buildCabin(
+        layout.cabin,
+        textures,
+        cabinProps,
+        cabinInterior,
+        props.getObjectByName('tree_stump_01') ?? null,
+        terrain.height(layout.cabin.center[0], layout.cabin.center[1]),
+        config.atmosphere.fog.density,
+      )
+      group.add(lodge.group)
+      return lodge.group
+    },
+    removeCabin,
     shadowPass: (on) => {
       // Mid-level trees: full silhouettes everywhere, a fraction of the near-level triangles.
       batches.trees.forceLod(on ? 1 : null)
@@ -281,7 +295,7 @@ export async function buildRealisticForest({ config, trees, props, ground, cabin
     },
     update: (camera, detail, delta, elapsed, reach) => {
       water.update(elapsed)
-      lodge.update(elapsed, camera)
+      lodge?.update(elapsed, camera)
       batches.trees.update(camera, detail, delta, reach)
       batches.ferns.update(camera, 1, delta, reach)
       batches.props.update(camera, detail, delta, reach)
@@ -290,7 +304,7 @@ export async function buildRealisticForest({ config, trees, props, ground, cabin
     dispose: () => {
       Object.values(batches).forEach((b) => b.dispose())
       water.dispose()
-      lodge.dispose()
+      removeCabin()
       baked.forEach((g) => g.dispose())
       for (const mesh of [floor, path]) {
         mesh.geometry.dispose()

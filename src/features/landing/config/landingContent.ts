@@ -128,8 +128,8 @@ export const featuresCopy = {
 
 const LANDING_ASSETS = `${import.meta.env.BASE_URL}assets/landing`
 /** Forest download (models, textures, HDR in public/assets/forest), rounded. */
-const FOREST_MB = 24
-const FOREST_LITE_MB = 8
+const FOREST_MB = 21
+const FOREST_LITE_MB = 7
 
 export const behindTheScenesCopy = {
   eyebrow: 'Bastidores',

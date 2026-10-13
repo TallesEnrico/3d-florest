@@ -10,7 +10,7 @@ Orçamentos, o que já foi feito, como medir e o que fazer depois. Critérios: [
 | Inferência MediaPipe (GPU) | < 15 ms por frame de vídeo | 10–15 ms (headless, SwiftShader). Em GPU real deve ser menor. |
 | Primeiro carregamento (texturas da cena) | < 2 MB | **1,35 MB** (WebP) + 36 kB (máscara emissiva) |
 | JS inicial | sem MediaPipe | 1,2 MB (336 kB gzip) em chunks: `three` 737 kB, `react` 219 kB, `index` 247 kB |
-| Floresta (sob demanda) | celular < 8 MB | desktop 24 MB; celular e tablet **7,5 MB** (variantes `_lite` / `_512`) |
+| Floresta (sob demanda) | celular < 8 MB | desktop 21 MB; celular e tablet **6,6 MB** (variantes `_lite` / `_512`, KTX2) + 250 kB do transcoder Basis (gzip) |
 | Montagem da floresta (celular, CPU 4× mais lenta, build de produção) | sem tarefa > 200 ms | ~1,8 s após o download; maior tarefa 181 ms; hero pronto em 1,07 s |
 | MediaPipe (sob demanda) | só após o clique | JS 154 kB (45 kB gzip) + wasm ~13 MB + modelo 3,7 MB |
 | Draw calls | < 10 | 7 (bg, brilho do sol, névoa distante, mid, névoa próxima, partículas, fg) |
@@ -21,6 +21,8 @@ Orçamentos, o que já foi feito, como medir e o que fazer depois. Critérios: [
 |---|---|
 | Qualidade da floresta em 5 níveis (`forestConfig.quality`), nível inicial pela capacidade do aparelho (`utils/deviceQuality.ts`) e ajuste pelo fps (`PerformanceMonitor`) | Aparelho forte mantém tudo; aparelho fraco desenha ~60% menos triângulos (2,7 M → 1,1 M no celular), com sombra e resolução menores |
 | Variantes leves da floresta (`LITE_ASSETS`: `max-width: 767px` ou `pointer: coarse`), geradas por `tools/forest-assets/make_lite.ts` | Cor e normal a 512 px, ARM a 256 px (GLB e avulsas), HDRI 512 × 256 e árvores sem o LOD 0 (os nós `_lod0` usam a malha do LOD 1): 24 MB → 7,5 MB de download, ~¼ da memória de GPU em texturas e ~4× menos triângulos nas árvores de perto |
+| Texturas da floresta em **KTX2** (ETC1S/BasisLZ, `qlevel` 128, mipmaps no arquivo), avulsas e embutidas nos GLB (`KHR_texture_basisu`), geradas por `tools/forest-assets/make_ktx2.ts`. Transcodificação em 2 workers (`components/forestLoaders.ts`); o transcoder vem do `three` e é empacotado pelo Vite (mesma origem) | Ficam comprimidas na GPU (BC/ETC/ASTC): ~4–8× menos memória de textura e upload mais rápido, sem decodificar imagem nem gerar mipmaps. Download também menor: celular 7,0 → 6,1 MB, desktop 22,1 → 19,2 MB (modelos + texturas) |
+| A cabana numa segunda etapa (`ForestCabin`): modelos e texturas da cabana só são pedidos depois que a floresta está montada e aquecida, e a cabana é aquecida à parte | A floresta fica pronta 2,9 MB antes no celular (9 MB no desktop); a cabana só aparece capítulos depois, velada pela névoa |
 | No celular, a floresta só monta ao rolar para além do hero ou após 6 s (`ForestJourney`) | O hero não disputa banda nem CPU com os 11 MB da floresta |
 | three.js e React em chunks próprios (`build.rolldownOptions.output.codeSplitting`) | Download em paralelo e cache entre deploys |
 | `public/.htaccess` (Apache): gzip para JS, CSS, wasm e HDR; cache imutável para chunks com hash | JS 1,2 MB → 336 kB e wasm do MediaPipe 13 MB → 3,8 MB, se o servidor aceitar `AllowOverride` |
@@ -47,12 +49,12 @@ Orçamentos, o que já foi feito, como medir e o que fazer depois. Critérios: [
 
 ## Memória de GPU
 
-Cada camada 1672×941 RGBA = 6,3 MB + mipmaps (×1,33) ≈ **8,4 MB** → ~25 MB nas 3 camadas, mais a máscara. Um upscale 2× quadruplica (~100 MB), e aí a entrega em **KTX2/Basis** (textura comprimida na GPU, `useKTX2` do drei) passa a ser obrigatória.
+Cada camada 1672×941 RGBA = 6,3 MB + mipmaps (×1,33) ≈ **8,4 MB** → ~25 MB nas 3 camadas, mais a máscara. Um upscale 2× quadruplica (~100 MB), e aí a entrega em **KTX2/Basis** (textura comprimida na GPU, como já é feito na floresta com `useKtx2Textures`) passa a ser obrigatória.
 
 ## Próximas otimizações (por impacto)
 
-1. **KTX2** nas texturas da floresta e quando houver upscale das camadas: comprimidas na GPU.
-2. **Conferir o servidor**: o `.htaccess` só vale com `mod_deflate`, `mod_headers` e `AllowOverride` ligados.
+1. **Conferir o servidor**: o `.htaccess` só vale com `mod_deflate`, `mod_headers` e `AllowOverride` ligados.
+2. **KTX2 nas camadas do hero** se houver upscale (hoje são WebP, 1,35 MB).
 3. **Web Worker para o MediaPipe** se a inferência passar de ~12 ms em máquinas-alvo (libera a thread principal para o render).
 4. **`frameloop="demand"`** com `prefers-reduced-motion` e sem entrada: hoje o loop roda sempre por causa da deriva e dos efeitos.
 5. **Pré-carregar** as texturas com `<link rel="preload" as="image">` no `index.html`.

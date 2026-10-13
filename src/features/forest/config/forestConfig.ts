@@ -5,9 +5,8 @@ const FOREST = `${import.meta.env.BASE_URL}assets/forest`
 export const LITE_ASSETS = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px), (pointer: coarse)').matches
 const MODEL_SUFFIX = LITE_ASSETS ? '_lite' : ''
 const TEXTURE_SIZE = LITE_ASSETS ? '512' : '1k'
-const model = (name: string) => `${FOREST}/models/${name}${MODEL_SUFFIX}.glb`
-const texture = (name: string) => `${FOREST}/textures/${name}_${TEXTURE_SIZE}.webp`
-
+const model = (name: string) => `${FOREST}/models/${name}${MODEL_SUFFIX}.ktx2.glb`
+const texture = (name: string) => `${FOREST}/textures/${name}_${TEXTURE_SIZE}.ktx2`
 /** The log cabin at the end of the walk (also used to place the last two shots). */
 const CABIN = { seed: 21, center: [0.6, -68.6] as [number, number], yaw: 0.45, size: [5.2, 4.4] as [number, number], groundY: -0.14 }
 

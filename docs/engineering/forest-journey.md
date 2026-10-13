@@ -7,6 +7,8 @@
 > **Entrada na cabana (2026-10-12):** duas seções novas antes do rodapé, Perguntas (`#perguntas`) e Créditos (`#creditos`), viram os capítulos 6 e 7. Em vez de se aproximar da cabana, a câmera contorna até a parede esquerda e **entra pela janela lateral**, terminando dentro da cabana mobiliada. Ver [Entrada pela janela](#entrada-pela-janela).
 >
 > **Saída pela porta (2026-10-12):** uma seção nova depois dos Créditos, Fogueira (`#fogueira`), vira o capítulo 8. A câmera vira para a porta, que agora fica aberta para dentro, sai da cabana e termina diante da fogueira no terreiro. Ver [Saída pela porta](#saída-pela-porta).
+>
+> **Cabana em segunda etapa e KTX2 (2026-10-12):** a cabana (modelos e texturas) só é pedida depois que a floresta está montada e aquecida (`ForestCabin`). Todas as texturas da floresta passam a ser KTX2 (Basis ETC1S), comprimidas na GPU. Ver [Carregamento](#carregamento-em-duas-etapas-e-ktx2).
 
 ## Visão geral
 
@@ -19,7 +21,8 @@
      │       ├─ ForestAtmosphere   fundo em degradê, névoa exponencial, luz de preenchimento (paleta do hero)
      │       ├─ SunLight           sol baixo e dourado, vindo da esquerda; um mapa de sombra em cache que acompanha a câmera
      │       ├─ SceneController    scroll → câmera (planos por capítulo) + paralaxe do mouse/cabeça + caminhos
-     │       ├─ RealisticForest    (chunk lazy, após ociosidade) HDRI + árvores, plantas, pedras, chão, trilha, rio, cabana e fogueira
+     │       ├─ RealisticForest    (chunk lazy, após ociosidade) HDRI + árvores, plantas, pedras, chão, trilha e rio
+     │       │   └─ ForestCabin    (segunda etapa, depois da floresta pronta) cabana, móveis e fogueira
      │       └─ LightShafts        fachos de luz sutis + brilho no fim da trilha
      ├─ section #manifesto         capítulo 1 ┐
      ├─ section #como-funciona     capítulo 2 │ as mesmas sections de antes (ids, textos, slots),
@@ -38,7 +41,7 @@
 | `SceneController` | `src/features/forest/components/SceneController.tsx` | A cada frame: lê `journey.shot`, interpola entre os planos dos capítulos (smoothstep), soma o caminho lateral e a entrada do mouse/cabeça, suaviza com mola (`smoothDamp`) e aponta a câmera. Em telas em retrato, abre o FOV vertical |
 | Sincronização do scroll | `src/features/forest/journey/journeyState.ts`, `useJourneyTracking.ts` | Um listener passivo de `scroll`/`resize`, medido no máximo 1× por frame (rAF), escreve o objeto mutável `journey` (sem estado React) |
 | Floresta | `components/RealisticForest.tsx`, `models/*`, `procedural/*` | Carrega os assets, distribui com semente fixa (mesma floresta a cada carga) e desenha em lotes com LOD por distância |
-| Assets | `public/assets/forest/` | GLBs otimizados, texturas WebP, HDRI; fontes e licença em `LICENSE.md` |
+| Assets | `public/assets/forest/` | GLBs otimizados e texturas em KTX2 (os `.webp` e `.glb` sem `.ktx2` são a entrada do pipeline, não são pedidos pelo site), HDRI; fontes e licença em `LICENSE.md` |
 | Atmosfera e luz | `components/ForestAtmosphere.tsx`, `components/SunLight.tsx`, `components/LightShafts.tsx` | Névoa, fundo, sol com sombras, fachos e brilho |
 | Ajustes | `src/features/forest/config/forestConfig.ts` | Planos de câmera, caminhos, layout, LOD, assets, paleta do chão, atmosfera |
 | Montagem na página | `src/features/landing/components/ForestJourney.tsx` | Palco sticky + capítulos; cria o canvas só a até uma tela de distância (`useInView` com `rootMargin`) e pausa (`frameloop="never"`) fora da viewport |
@@ -78,7 +81,7 @@ O `SceneController` usa `shot` para mesclar o plano `floor(shot)` com o seguinte
 |---|---|---|
 | `fir_tree_01` | Três abetos escaneados (casca fotográfica, galhos secos, agulhas em cartões com alfa), ampliados para 20–40 m | `models/fir_trees.glb` (14 MB) |
 | `fern_02`, `rock_moss_set_01`, `tree_stump_01`, `dead_tree_trunk_02`, `pine_roots` | Samambaias, pedras com musgo, tocos, troncos caídos, raízes expostas | `models/forest_props.glb` (4,5 MB) |
-| `forest_leaves_04`, `forest_ground_04` | Solo (agulhas, gravetos, folhas) e trilha (terra batida), PBR: cor, normal, AO/roughness | `textures/*.webp` (2,2 MB) |
+| `forest_leaves_04`, `forest_ground_04` | Solo (agulhas, gravetos, folhas) e trilha (terra batida), PBR: cor, normal, AO/roughness | `textures/*.ktx2` |
 | `forest_slope` | Luz ambiente (IBL) de floresta ensolarada, céu limpo de meio da tarde | `hdri/forest_slope_1k.hdr` (1,9 MB) |
 
 Os originais tinham 7,8 M triângulos e 487 MB só nas árvores. O processamento, feito uma vez com `@gltf-transform` + `meshoptimizer`, fica em `tools/forest-assets/`, que tem `package.json` próprio, fora das dependências do site. O passo a passo para reproduzir está no README dessa pasta:
@@ -88,9 +91,16 @@ Os originais tinham 7,8 M triângulos e 487 MB só nas árvores. O processamento
 - troncos simplificados;
 - alfa das agulhas reconstruído;
 - UV no tronco que não tinha;
-- WebP e compressão meshopt.
+- WebP e compressão meshopt;
+- texturas convertidas para KTX2 no fim (`make_ktx2.ts`).
 
-Total servido: ~22 MB, carregados depois da primeira renderização.
+Total servido: ~21 MB no desktop e 6,6 MB no celular, carregados depois da primeira renderização.
+
+### Carregamento em duas etapas e KTX2
+
+- **Primeira etapa** (`RealisticForest`): árvores, plantas, pedras, chão, trilha, rio e HDRI. Ao terminar de montar e aquecer, avisa a página (`onReady`).
+- **Segunda etapa** (`ForestCabin`, num `Suspense` próprio): só então pede `cabin_props`, `cabin_interior` e as texturas da cabana, monta a cabana com `addCabin` (no terreno já calculado), chama `invalidateSunShadow()` e aquece só o grupo da cabana com `warmUpForest`. A cabana aparece capítulos depois, velada pela névoa, então nada falta na tela. A distribuição não muda: ela usa só a configuração da cabana, não os modelos.
+- **KTX2:** as texturas avulsas (`useKtx2Textures`) e as embutidas nos GLB (`KHR_texture_basisu`) passam por um único `KTX2Loader` com 2 workers (`components/forestLoaders.ts`). O transcoder Basis vem do `three` e o Vite o empacota com hash. Nada é pedido a terceiros. As texturas avulsas são gravadas com a origem embaixo, no lugar do `flipY`, que texturas comprimidas não aceitam.
 
 ### Como a cena é montada
 
@@ -199,7 +209,7 @@ O resultado é folhagem de abeto real com menos triângulos (árvore A, perto: 1
   3. os dois primeiros quadros reais rodam escondidos (`advance` do R3F: câmera no plano, níveis de detalhe atribuídos, sombra desenhada).
 - **Variantes de shader estáveis:** os lotes definem a cor por instância já na criação (`lodBatches.ts`). Sem isso, o `BatchedMesh` só criava a textura de cor quando a primeira instância aparecia, e o shader recompilava no meio do scroll. A cabana nasce projetando sombra e com a fogueira acesa, para que o aquecimento compile essas variantes.
 - **Construção em etapas:** `buildRealisticForest` é assíncrono e cede a vez ao navegador entre etapas (`models/yieldToMain.ts`, com `scheduler.yield` onde existe). A maior tarefa de carregamento caiu de 521 para ~150 ms.
-- **Decodificação fora da thread principal:** texturas por `ImageBitmapLoader` (`scene/hooks/useImageTextures.ts`, usado pelo hero e pela floresta, com a mesma regra de compatibilidade do `GLTFLoader`: Safari 17+, Firefox 98+) e geometria meshopt descomprimida em 2 workers. Decodificar uma pintura do hero na thread principal custava ~160 ms.
+- **Decodificação fora da thread principal:** no hero, texturas por `ImageBitmapLoader` (`scene/hooks/useImageTextures.ts`, com a mesma regra de compatibilidade do `GLTFLoader`: Safari 17+, Firefox 98+). Na floresta, texturas KTX2 transcodificadas em 2 workers e geometria meshopt descomprimida em outros 2 (`components/forestLoaders.ts`). Decodificar uma pintura do hero na thread principal custava ~160 ms.
 - **Monitores de desempenho só com o canvas rodando:** o `PerformanceMonitor` mede o intervalo entre quadros. Com o canvas pausado (fora da tela), a primeira medição ao voltar incluía a pausa e rebaixava a qualidade sem motivo. Agora hero e floresta só montam o monitor enquanto renderizam (a floresta, também só depois do aquecimento).
 - **Resolução do hero:** no máximo 1,25×. As pinturas têm 1672 px de largura, ~1,1 pixel de arte por pixel de tela num notebook; 1,75× custava o dobro de pixels para a mesma imagem (detalhe medido: −4,5%).
 - **Densidade de pixels da floresta:** no máximo 1,25× (1× no modo leve). As texturas são 1k e as agulhas usam MSAA com alpha-to-coverage; 1,5× custava ~30% a mais de pixels sem ganho visível.
@@ -263,7 +273,7 @@ O tempo por quadro depende da carga da máquina: com outro navegador usando a GP
 | **Dois canvases na página** (hero e floresta) | Desacopla a janela (câmera off-axis) da jornada (câmera de scroll); só renderizam ao mesmo tempo na transição hero → capítulo 1 | Um contexto só com `View` do drei (um canvas fixo, várias "janelas"): mais econômico em memória, mas exige refatorar o hero. Fica como evolução. |
 | Estado da jornada **fora do React** (objeto mutável) | Zero re-render durante o scroll | Estado React/zustand por scroll |
 | **Assets escaneados (Poly Haven, CC0)** em vez de geometria gerada | Casca, agulhas e plantas fotográficas: a cena deixa de parecer low-poly. CC0 dispensa atribuição e permite uso comercial | Geometria procedural (estilizada demais), Quixel/Sketchfab (exigem conta, licenças diferentes) |
-| **Otimização offline** (poda de cartões, simplificação, meshopt, WebP) | Os originais (487 MB, 7,8 M triângulos) são inviáveis na web; a otimização roda uma vez e não adiciona dependências ao projeto | Carregar os originais (inviável) |
+| **Otimização offline** (poda de cartões, simplificação, meshopt, KTX2) | Os originais (487 MB, 7,8 M triângulos) são inviáveis na web; a otimização roda uma vez e não adiciona dependências ao projeto | Carregar os originais (inviável) |
 | **`BatchedMesh` por material com LOD por instância** | Culling e ordenação por árvore, troca de detalhe pela distância da câmera e poucas chamadas de desenho (uma por material) | `InstancedMesh` por variante (sem culling por instância; LOD só por faixas fixas) |
 | **Um mapa de sombra que acompanha a câmera, em cache** | As agulhas recortando o sol dão as manchas de luz da referência; uma luz só, área limitada ao que a câmera vê, redesenhada só quando a área anda (a cena é estática) | Sem sombras (o sol iluminava o chão por igual sob as copas), sombra redesenhada a cada quadro (custava ~35% do quadro) ou cascatas de sombra (mais caras) |
 | **Assets após ociosidade + chunk lazy** | A página abre como antes (o código da floresta é um chunk de 135 kB; os 22 MB vêm depois) | Carregar junto com a página |
@@ -275,8 +285,7 @@ O tempo por quadro depende da carga da máquina: com outro navegador usando a GP
 3. **Floresta:**
    - musgo nos troncos e musgo pendente (referência do Noroeste do Pacífico): exige uma textura de casca musgosa ou mistura de texturas no material;
    - mais espécies (`pine_tree_01`, 958 MB brutos, mesmo processo);
-   - vento leve nas copas;
-   - texturas KTX2 para reduzir memória de GPU.
+   - vento leve nas copas.
 4. Se a memória pesar: juntar hero e floresta num único contexto com `View`.
 
 ## Onde ajustar

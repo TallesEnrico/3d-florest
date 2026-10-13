@@ -104,4 +104,16 @@ Depois de qualquer mudança em modelos, texturas ou HDRI, gere de novo as varian
 bun make_lite.ts ../../public/assets/forest
 ```
 
+## 5. Texturas → KTX2 (o que o site carrega)
+
+Por último, depois das variantes leves: cada textura WebP (avulsa ou embutida nos GLB, completos e `_lite`) vira KTX2 em ETC1S/BasisLZ (`--qlevel 128`, mipmaps no arquivo). Saídas: `textures/*.ktx2` e `models/*.ktx2.glb` (`KHR_texture_basisu` no lugar de `EXT_texture_webp`; geometria copiada byte a byte). Cor base e emissiva em sRGB; normal e ARM lineares. As avulsas são gravadas com a origem embaixo (o site não pode virar textura comprimida no upload). Os WebP e GLB originais ficam como entrada do pipeline.
+
+Precisa do `ktx` (KTX-Software ≥ 4.3) e do `dwebp` (libwebp). Sem Homebrew, extraia o `.pkg` do [release](https://github.com/KhronosGroup/KTX-Software/releases) com `pkgutil --expand-full` e aponte `KTX` para o binário:
+
+```sh
+KTX=/caminho/para/ktx bun make_ktx2.ts ../../public/assets/forest
+```
+
+UASTC daria normais mais nítidas, mas a normal de 1k passava de 520 kB para 1,3 MB; com ETC1S o download ficou menor que em WebP (celular 7,0 → 6,1 MB).
+
 Ao trocar ou adicionar um asset, registre fonte, autores e licença em `public/assets/forest/LICENSE.md`.

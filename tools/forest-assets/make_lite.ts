@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { imageBytes, imageSource, readGlb, writeGlb } from './glb.ts'
 
 const LITE_SIZE = 512
 const LITE_ARM_SIZE = 256
@@ -22,80 +23,21 @@ function shrinkWebp(data: Uint8Array, size = LITE_SIZE): Buffer {
   return readFileSync(output)
 }
 
-interface BufferRange {
-  buffer?: number
-  byteOffset?: number
-  byteLength: number
-}
-interface BufferView extends BufferRange {
-  extensions?: { EXT_meshopt_compression?: BufferRange }
-}
-
 function shrinkGlb(source: string, target: string) {
-  const file = readFileSync(source)
-  const jsonLength = file.readUInt32LE(12)
-  const json = JSON.parse(file.subarray(20, 20 + jsonLength).toString())
-  const bin = file.subarray(20 + jsonLength + 8)
+  const { json, bin, size } = readGlb(source)
   const armImages = new Set<number>()
-  const sourceOf = (ref?: { index: number }) => {
-    if (!ref) return undefined
-    const texture = json.textures[ref.index]
-    return texture.extensions?.EXT_texture_webp?.source ?? texture.source
-  }
   for (const material of json.materials ?? []) {
     for (const ref of [material.pbrMetallicRoughness?.metallicRoughnessTexture, material.occlusionTexture]) {
-      const source = sourceOf(ref)
-      if (source !== undefined) armImages.add(source)
+      const image = imageSource(json, ref)
+      if (image !== undefined) armImages.add(image)
     }
   }
   const images = new Map<number, Buffer>()
-  json.images?.forEach((image: { bufferView: number }, index: number) => {
-    const view: BufferView = json.bufferViews[image.bufferView]
-    const start = view.byteOffset ?? 0
-    const size = armImages.has(index) ? LITE_ARM_SIZE : LITE_SIZE
-    images.set(image.bufferView, shrinkWebp(bin.subarray(start, start + view.byteLength), size))
+  json.images?.forEach((image, index) => {
+    const edge = armImages.has(index) ? LITE_ARM_SIZE : LITE_SIZE
+    images.set(image.bufferView, shrinkWebp(imageBytes(json, bin, image.bufferView), edge))
   })
-
-  const chunks: Buffer[] = []
-  let offset = 0
-  const append = (range: BufferRange, data: Buffer) => {
-    const padding = (8 - (offset % 8)) % 8
-    if (padding) chunks.push(Buffer.alloc(padding))
-    offset += padding
-    range.byteOffset = offset
-    range.byteLength = data.length
-    chunks.push(data)
-    offset += data.length
-  }
-  json.bufferViews.forEach((view: BufferView, index: number) => {
-    const meshopt = view.extensions?.EXT_meshopt_compression
-    const range = meshopt ?? view
-    if ((range.buffer ?? 0) !== 0) return
-    const start = range.byteOffset ?? 0
-    append(range, images.get(index) ?? bin.subarray(start, start + range.byteLength))
-  })
-  const tail = (4 - (offset % 4)) % 4
-  if (tail) chunks.push(Buffer.alloc(tail))
-  const binChunk = Buffer.concat(chunks)
-  json.buffers[0].byteLength = binChunk.length
-
-  let jsonBytes = Buffer.from(JSON.stringify(json))
-  jsonBytes = Buffer.concat([jsonBytes, Buffer.alloc((4 - (jsonBytes.length % 4)) % 4, 0x20)])
-  const header = Buffer.alloc(12)
-  header.write('glTF', 0)
-  header.writeUInt32LE(2, 4)
-  header.writeUInt32LE(12 + 8 + jsonBytes.length + 8 + binChunk.length, 8)
-  const chunkHeader = (length: number, type: string) => {
-    const head = Buffer.alloc(8)
-    head.writeUInt32LE(length, 0)
-    head.write(type, 4)
-    return head
-  }
-  writeFileSync(
-    target,
-    Buffer.concat([header, chunkHeader(jsonBytes.length, 'JSON'), jsonBytes, chunkHeader(binChunk.length, 'BIN\0'), binChunk]),
-  )
-  console.log(`${target}: ${file.length} → ${12 + 16 + jsonBytes.length + binChunk.length} bytes`)
+  console.log(`${target}: ${size} → ${writeGlb(target, json, bin, images)} bytes`)
 }
 
 function readHdr(source: string) {
@@ -189,7 +131,7 @@ for (const name of readdirSync(join(root, 'textures')).filter((name) => name.end
   writeFileSync(join(root, 'textures', target), shrinkWebp(readFileSync(join(root, 'textures', name)), size))
 }
 console.log('textures written')
-for (const name of readdirSync(join(root, 'models')).filter((name) => name.endsWith('.glb') && !name.endsWith('_lite.glb'))) {
+for (const name of readdirSync(join(root, 'models')).filter((name) => name.endsWith('.glb') && !name.endsWith('_lite.glb') && !name.endsWith('.ktx2.glb'))) {
   shrinkGlb(join(root, 'models', name), join(root, 'models', name.replace('.glb', '_lite.glb')))
 }
 await dropNearTreeDetail(join(root, 'models', 'fir_trees_lite.glb'))
