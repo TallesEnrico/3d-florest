@@ -52,7 +52,7 @@ export interface RealisticForest {
    * `delta` = seconds since the last frame, for the dissolves) and the river's flow (`elapsed`
    * seconds; keep it constant to stop the water).
    */
-  update: (camera: Vector3, detail: number, delta: number, elapsed: number) => void
+  update: (camera: Vector3, detail: number, delta: number, elapsed: number, reach: number) => void
   /** On while the static shadow map is drawn: every tree and prop at a fixed level of detail. */
   shadowPass: (on: boolean) => void
   stats: () => Record<string, { instances: number; visible: number; triangles: number }>
@@ -279,12 +279,12 @@ export async function buildRealisticForest({ config, trees, props, ground, cabin
       batches.trees.forceLod(on ? 1 : null)
       batches.props.forceLod(on ? 0 : null)
     },
-    update: (camera, detail, delta, elapsed) => {
+    update: (camera, detail, delta, elapsed, reach) => {
       water.update(elapsed)
       lodge.update(elapsed, camera)
-      batches.trees.update(camera, detail, delta)
-      batches.ferns.update(camera, 1, delta)
-      batches.props.update(camera, detail, delta)
+      batches.trees.update(camera, detail, delta, reach)
+      batches.ferns.update(camera, 1, delta, reach)
+      batches.props.update(camera, detail, delta, reach)
     },
     stats: () => ({ trees: batches.trees.stats(), ferns: batches.ferns.stats(), props: batches.props.stats() }),
     dispose: () => {

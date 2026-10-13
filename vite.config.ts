@@ -10,4 +10,16 @@ export default defineConfig({
     // discovers them late (which would re-optimize and load a second copy of three).
     include: ['three/addons/loaders/GLTFLoader.js', 'three/addons/libs/meshopt_decoder.module.js'],
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: 'three', test: /node_modules[\\/]three[\\/]build/ },
+            { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
+          ],
+        },
+      },
+    },
+  },
 })

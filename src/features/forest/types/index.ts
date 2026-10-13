@@ -9,6 +9,13 @@ export interface CameraShot {
    * 0 = locked). Lowered near and inside the cabin so the camera never meets a wall.
    */
   freedom?: number
+  via?: CameraWaypoint[]
+}
+
+export interface CameraWaypoint {
+  position: Vec3
+  target: Vec3
+  freedom?: number
 }
 
 export interface ForestConfig {
@@ -46,10 +53,21 @@ export interface ForestConfig {
     /** Seconds a switch takes: the two levels (or the object and the haze) dissolve into each other. */
     fadeSeconds: number
   }
+  quality: QualityTier[]
   /** Photoreal assets in public/assets/forest (sources and license: LICENSE.md there). */
   assets: ForestAssets
   palette: ForestPalette
   atmosphere: AtmosphereConfig
+}
+
+export type QualityTierName = 'ultra' | 'high' | 'medium' | 'low' | 'minimum'
+
+export interface QualityTier {
+  name: QualityTierName
+  detail: number
+  reach: number
+  dpr: number
+  shadowMap: number
 }
 
 /** Tree models in the trees GLB: nodes `<model>_lod0` (near), `_lod1` (mid), `_lod2` (far). */

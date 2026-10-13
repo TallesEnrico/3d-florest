@@ -8,8 +8,10 @@ Orçamentos, o que já foi feito, como medir e o que fazer depois. Critérios: [
 |---|---|---|
 | Frame (desktop, tracking ativo) | 60 fps, p95 < 20 ms | 60 fps no Chrome headless (rAF); **falta medir em GPU real** com DevTools |
 | Inferência MediaPipe (GPU) | < 15 ms por frame de vídeo | 10–15 ms (headless, SwiftShader). Em GPU real deve ser menor. |
-| Primeiro carregamento (texturas da cena) | < 2 MB | **1,2 MB** (WebP) + 36 kB (máscara emissiva) |
-| JS inicial | sem MediaPipe | 1,16 MB (321 kB gzip), dos quais three.js é a maior parte |
+| Primeiro carregamento (texturas da cena) | < 2 MB | **1,35 MB** (WebP) + 36 kB (máscara emissiva) |
+| JS inicial | sem MediaPipe | 1,2 MB (336 kB gzip) em chunks: `three` 737 kB, `react` 219 kB, `index` 247 kB |
+| Floresta (sob demanda) | celular < 8 MB | desktop 24 MB; celular e tablet **7,5 MB** (variantes `_lite` / `_512`) |
+| Montagem da floresta (celular, CPU 4× mais lenta, build de produção) | sem tarefa > 200 ms | ~1,8 s após o download; maior tarefa 181 ms; hero pronto em 1,07 s |
 | MediaPipe (sob demanda) | só após o clique | JS 154 kB (45 kB gzip) + wasm ~13 MB + modelo 3,7 MB |
 | Draw calls | < 10 | 7 (bg, brilho do sol, névoa distante, mid, névoa próxima, partículas, fg) |
 
@@ -17,6 +19,11 @@ Orçamentos, o que já foi feito, como medir e o que fazer depois. Critérios: [
 
 | Decisão | Ganho |
 |---|---|
+| Qualidade da floresta em 5 níveis (`forestConfig.quality`), nível inicial pela capacidade do aparelho (`utils/deviceQuality.ts`) e ajuste pelo fps (`PerformanceMonitor`) | Aparelho forte mantém tudo; aparelho fraco desenha ~60% menos triângulos (2,7 M → 1,1 M no celular), com sombra e resolução menores |
+| Variantes leves da floresta (`LITE_ASSETS`: `max-width: 767px` ou `pointer: coarse`), geradas por `tools/forest-assets/make_lite.ts` | Cor e normal a 512 px, ARM a 256 px (GLB e avulsas), HDRI 512 × 256 e árvores sem o LOD 0 (os nós `_lod0` usam a malha do LOD 1): 24 MB → 7,5 MB de download, ~¼ da memória de GPU em texturas e ~4× menos triângulos nas árvores de perto |
+| No celular, a floresta só monta ao rolar para além do hero ou após 6 s (`ForestJourney`) | O hero não disputa banda nem CPU com os 11 MB da floresta |
+| three.js e React em chunks próprios (`build.rolldownOptions.output.codeSplitting`) | Download em paralelo e cache entre deploys |
+| `public/.htaccess` (Apache): gzip para JS, CSS, wasm e HDR; cache imutável para chunks com hash | JS 1,2 MB → 336 kB e wasm do MediaPipe 13 MB → 3,8 MB, se o servidor aceitar `AllowOverride` |
 | Camadas em **WebP q90** com alfa exato (`cwebp -q 90 -alpha_q 100 -exact -sharp_yuv -m 6`) | 6,9 MB → 1,2 MB de download, sem diferença visível (PSNR 36–41 dB, alfa idêntico) |
 | MediaPipe com `import()` dinâmico após "Ativar câmera" | Bundle inicial sem o tracking; nenhum wasm ou modelo é baixado sem opt-in |
 | Detecção por `requestVideoFrameCallback` | Inferência ≤ 30 Hz (frames reais da câmera), nunca por frame de render |
@@ -44,8 +51,8 @@ Cada camada 1672×941 RGBA = 6,3 MB + mipmaps (×1,33) ≈ **8,4 MB** → ~25 MB
 
 ## Próximas otimizações (por impacto)
 
-1. **Separar three.js em chunk próprio** (`build.rolldownOptions.output`): não reduz o total, mas melhora o cache entre deploys.
-2. **KTX2** quando houver upscale das camadas.
+1. **KTX2** nas texturas da floresta e quando houver upscale das camadas: comprimidas na GPU.
+2. **Conferir o servidor**: o `.htaccess` só vale com `mod_deflate`, `mod_headers` e `AllowOverride` ligados.
 3. **Web Worker para o MediaPipe** se a inferência passar de ~12 ms em máquinas-alvo (libera a thread principal para o render).
 4. **`frameloop="demand"`** com `prefers-reduced-motion` e sem entrada: hoje o loop roda sempre por causa da deriva e dos efeitos.
 5. **Pré-carregar** as texturas com `<link rel="preload" as="image">` no `index.html`.

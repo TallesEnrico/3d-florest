@@ -96,4 +96,12 @@ Texturas do AmbientCG (telhado, frontões e pontas das toras): baixe o zip `1K-J
 
 HDRI: copie `/tmp/forest-raw/hdri/forest_slope_1k.hdr` para `public/assets/forest/hdri/`.
 
+## 4. Variantes leves (celular e tablet)
+
+Depois de qualquer mudança em modelos, texturas ou HDRI, gere de novo as variantes que o `forestConfig` usa em telas pequenas ou de toque (`LITE_ASSETS`): cor e normal a 512 px e ARM a 256 px (`*_512.webp`, inclusive as embutidas nos GLB, em `*_lite.glb`) e o HDRI em 512 × 256 (`forest_slope_512.hdr`). A geometria é copiada byte a byte, exceto no `fir_trees_lite.glb`: os nós `_lod0` passam a usar a malha e a transformação do `_lod1` (o LOD 0 é o mais pesado e quase não aparece em tela pequena), e o que sobra é removido. Precisa do `cwebp` (libwebp ≥ 1.0).
+
+```sh
+bun make_lite.ts ../../public/assets/forest
+```
+
 Ao trocar ou adicionar um asset, registre fonte, autores e licença em `public/assets/forest/LICENSE.md`.

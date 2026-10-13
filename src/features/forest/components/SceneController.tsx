@@ -13,6 +13,18 @@ const MAX_STEP_SECONDS = 0.1
 
 const spring = (): SpringState => ({ value: 0, velocity: 0 })
 
+const routes = shots.map((shot, index) => {
+  const points = [...(index > 0 ? [shots[index - 1]] : []), ...(shot.via ?? []), shot].map((point) => ({
+    position: new Vector3().fromArray(point.position),
+    target: new Vector3().fromArray(point.target),
+    freedom: point.freedom ?? 1,
+  }))
+  const lengths = [0]
+  for (let k = 1; k < points.length; k++) lengths.push(lengths[k - 1] + points[k].position.distanceTo(points[k - 1].position))
+  const total = lengths[lengths.length - 1] || 1
+  return { points, stops: lengths.map((length) => length / total) }
+})
+
 /** Per-frame mutable state (springs + scratch vectors), kept in a ref: no allocations per frame. */
 function createControllerState() {
   return {
@@ -56,13 +68,20 @@ export function SceneController({ getViewInput }: SceneControllerProps) {
     const delta = Math.min(frameDelta, MAX_STEP_SECONDS)
     const from = Math.floor(journey.shot)
     const to = Math.min(shots.length - 1, from + 1)
-    const blend = MathUtils.smoothstep(journey.shot - from, 0, 1)
+    const blend = from === to ? 1 : MathUtils.smoothstep(journey.shot - from, 0, 1)
+    const { points, stops } = routes[to]
+    let leg = 1
+    while (leg < stops.length - 1 && blend > stops[leg]) leg++
+    const start = points[Math.max(0, leg - 1)]
+    const end = points[Math.min(points.length - 1, leg)]
+    const span = stops[leg] - stops[leg - 1]
+    const local = span > 0 ? MathUtils.clamp((blend - stops[leg - 1]) / span, 0, 1) : 1
 
-    state.goalPosition.fromArray(shots[from].position).lerp(state.lookAt.fromArray(shots[to].position), blend)
-    state.goalTarget.fromArray(shots[from].target).lerp(state.lookAt.fromArray(shots[to].target), blend)
+    state.goalPosition.copy(start.position).lerp(end.position, local)
+    state.goalTarget.copy(start.target).lerp(end.target, local)
 
     // How far paths and parallax may move the camera: less near walls (the cabin), none inside.
-    const freedom = MathUtils.lerp(shots[from].freedom ?? 1, shots[to].freedom ?? 1, blend)
+    const freedom = MathUtils.lerp(start.freedom, end.freedom, local)
 
     // Side path: step sideways and turn the gaze toward it.
     state.goalPosition.x += journey.path * paths.spacing * freedom

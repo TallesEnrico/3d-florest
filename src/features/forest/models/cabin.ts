@@ -51,7 +51,7 @@ const LOG_ROWS = 9
 /** How far the logs run past the corners (saddle-notched corners). */
 const CORNER = 0.32
 const PITCH = (38 * Math.PI) / 180
-const DOOR = { x: -0.7, width: 0.95, height: 1.95 }
+const DOOR = { x: -0.7, width: 0.95, height: 1.95, open: -1.83 }
 const FRONT_WINDOW = { x: 1.25, width: 1, bottom: 0.95, top: 1.85 }
 const SIDE_WINDOW = { z: 0.2, width: 1.1, bottom: 0.95, top: 1.8 }
 /**
@@ -334,7 +334,10 @@ export function buildCabin(
     return geometry
   }
   const plankTint = (v: number) => (): [number, number, number] => [v, v, v]
-  parts.planks.push(finish(box(DOOR.width, DOOR.height, 0.06, DOOR.x, DOOR.height / 2, halfD - 0.05), plankTint(0.78)))
+  const door = box(DOOR.width, DOOR.height, 0.06, -DOOR.width / 2, DOOR.height / 2, 0)
+  door.rotateY(DOOR.open)
+  door.translate(DOOR.x + DOOR.width / 2, 0, halfD - 0.05)
+  parts.planks.push(finish(door, plankTint(0.78)))
   for (const trim of [
     box(0.1, DOOR.height + 0.08, 0.1, DOOR.x - DOOR.width / 2 - 0.03, DOOR.height / 2, halfD + 0.02),
     box(0.1, DOOR.height + 0.08, 0.1, DOOR.x + DOOR.width / 2 + 0.03, DOOR.height / 2, halfD + 0.02),

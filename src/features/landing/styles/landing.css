@@ -1155,3 +1155,10 @@ html.is-menu-open {
     opacity: 1;
   }
 }
+
+@media (max-width: 767px) {
+  .forest-journey > .section.campfire-section {
+    align-content: start;
+    padding-top: calc(var(--header-height) + 16px);
+  }
+}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { ForestScene } from '../../forest/components/ForestScene.tsx'
+import { LITE_ASSETS } from '../../forest/config/forestConfig.ts'
 import { journey, stepPath } from '../../forest/journey/journeyState.ts'
 import { useJourneyTracking } from '../../forest/journey/useJourneyTracking.ts'
 import { useHeadTrackingStore } from '../../headTracking/store/headTrackingStore.ts'
@@ -10,6 +11,7 @@ import { usePointerInput } from '../hooks/usePointerInput.ts'
 
 // The content sections are the journey's chapters, in page order (one camera shot each).
 const CHAPTER_IDS = contentSections.map((section) => section.id)
+const LITE_START_DELAY = 6000
 
 const isInteractive = (target: EventTarget | null) =>
   target instanceof Element && target.closest('a, button, input, textarea, select, [contenteditable]') !== null
@@ -33,6 +35,14 @@ export function ForestJourney({ getViewInput, children }: ForestJourneyProps) {
   const journeyRef = useRef<HTMLDivElement>(null)
   const near = useInView(journeyRef, false, '100% 0px')
   const visible = useInView(journeyRef, false)
+  const [liteStarted, setLiteStarted] = useState(false)
+  if (LITE_ASSETS && visible && !liteStarted) setLiteStarted(true)
+  useEffect(() => {
+    if (!LITE_ASSETS || liteStarted) return
+    const id = setTimeout(() => setLiteStarted(true), LITE_START_DELAY)
+    return () => clearTimeout(id)
+  }, [liteStarted])
+  const mountScene = LITE_ASSETS ? liteStarted : near
   const [announcement, setAnnouncement] = useState('')
   useJourneyTracking(journeyRef, CHAPTER_IDS)
 
@@ -92,7 +102,7 @@ export function ForestJourney({ getViewInput, children }: ForestJourneyProps) {
         background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, rgba(255, 255, 255, 0) 100%)'
        }} />
       <div className={`forest-journey__stage${visible ? ' is-visible' : ''}`}>
-        {near && <ForestScene paused={!visible} getViewInput={readInput} />}
+        {mountScene && <ForestScene paused={!visible} getViewInput={readInput} />}
         <p className="forest-journey__hint" aria-hidden="true">
           Mova o mouse ou a cabeça para olhar ao redor · Dois cliques à esquerda ou à direita (ou ← →) para
           mudar de caminho

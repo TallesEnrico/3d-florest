@@ -39,6 +39,7 @@ const withMeshopt = (loader: GLTFLoader) => {
 interface RealisticForestProps {
   /** 1 = full detail; lower values shorten the distances at which detail drops (slow devices). */
   detail: number
+  reach: number
   /** Called once the forest is built and the GPU warmed up (its first frames already drawn). */
   onReady?: () => void
 }
@@ -49,7 +50,7 @@ interface RealisticForestProps {
  * image-based light (HDR). Suspends while the assets load (the scene shows only the misty
  * atmosphere meanwhile). Loaded as its own chunk (lazy), so the page's first load stays light.
  */
-export function RealisticForest({ detail, onReady }: RealisticForestProps) {
+export function RealisticForest({ detail, reach, onReady }: RealisticForestProps) {
   const [trees, props, cabinProps, cabinInterior] = useLoader(
     GLTFLoader,
     [assets.trees, assets.props, assets.cabin.props, assets.cabin.interior],
@@ -122,7 +123,7 @@ export function RealisticForest({ detail, onReady }: RealisticForestProps) {
   // The river flows unless the visitor prefers reduced motion (then it holds still).
   const reducedMotion = usePrefersReducedMotion()
   useFrame(({ camera, clock }, delta) => {
-    forest.current?.update(camera.position, detail, Math.min(delta, 0.1), reducedMotion ? 0 : clock.elapsedTime)
+    forest.current?.update(camera.position, detail, Math.min(delta, 0.1), reducedMotion ? 0 : clock.elapsedTime, reach)
   })
 
   return (

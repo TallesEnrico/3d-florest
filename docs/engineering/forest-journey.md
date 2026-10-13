@@ -5,6 +5,8 @@
 > **Floresta fotorrealista (Etapa 3, 2026-10-11):** a floresta low-poly gerada por código foi substituída por **assets escaneados do Poly Haven (CC0)**: abetos reais com casca fotográfica, samambaias, pedras com musgo, troncos caídos, tocos, raízes, solo PBR e luz por HDRI, com sombras do sol. Detalhes em [Floresta fotorrealista](#floresta-fotorrealista). Fontes e licença: `public/assets/forest/LICENSE.md`.
 >
 > **Entrada na cabana (2026-10-12):** duas seções novas antes do rodapé, Perguntas (`#perguntas`) e Créditos (`#creditos`), viram os capítulos 6 e 7. Em vez de se aproximar da cabana, a câmera contorna até a parede esquerda e **entra pela janela lateral**, terminando dentro da cabana mobiliada. Ver [Entrada pela janela](#entrada-pela-janela).
+>
+> **Saída pela porta (2026-10-12):** uma seção nova depois dos Créditos, Fogueira (`#fogueira`), vira o capítulo 8. A câmera vira para a porta, que agora fica aberta para dentro, sai da cabana e termina diante da fogueira no terreiro. Ver [Saída pela porta](#saída-pela-porta).
 
 ## Visão geral
 
@@ -25,7 +27,8 @@
      ├─ section #bastidores        capítulo 4 │
      ├─ section #experimente       capítulo 5 │
      ├─ section #perguntas         capítulo 6 │ diante da janela esquerda da cabana
-     └─ section #creditos          capítulo 7 ┘ dentro da cabana
+     ├─ section #creditos          capítulo 7 │ dentro da cabana
+     └─ section #fogueira          capítulo 8 ┘ fora, diante da fogueira
 <footer #rodape>                    o palco termina antes dele
 ```
 
@@ -160,6 +163,16 @@ O resultado é folhagem de abeto real com menos triângulos (árvore A, perto: 1
   - **Capítulo 7 (Créditos):** a câmera está 0,6 m dentro, olhando ao longo da parede direita.
   - **A reta entre os dois:** cruza a parede no centro da janela. A mola não sai da reta: os três eixos seguem o mesmo parâmetro, com o mesmo amortecimento crítico.
   - **Onde ajustar:** os dois planos são dados no referencial da cabana (`cabinPoint` e `WINDOW` em `forestConfig.ts`). Se a cabana mudar de lugar ou girar, eles acompanham.
+### Saída pela porta
+
+- **Pontos de passagem (`via`):** um plano pode listar pontos (posição, alvo e `freedom`) por onde a câmera passa ao vir do plano anterior. O `SceneController` percorre a poligonal com velocidade uniforme (parâmetro proporcional ao comprimento de cada trecho), com a mesma suavização do início e do fim da transição. Sem `via`, a transição continua sendo a reta de antes.
+- **O trajeto do capítulo 7 ao 8:**
+  - vira para a porta, ainda dentro (`cabinPoint(-0.8, 1.45, 1)`, olhando para fora);
+  - atravessa o vão em linha reta, a ~0,45 m de cada batente, com `freedom` 0,1–0,15;
+  - sai para o terreiro (`cabinPoint(-0.62, 1.45, 3.4)`) e termina diante da fogueira (`cabinPoint(3, 1.35, 8.2)`), com `freedom` 0,4.
+- **Porta:** aberta para dentro (`DOOR.open`, −1,83 rad), presa no batente direito, encostada fora do caminho da câmera.
+- **Floresta inalterada:** o plano novo fica depois do fim da trilha e não consome sorteios em `layoutTrees` (mesmas contagens de árvores, samambaias e objetos).
+
 - **Janelas abertas:** sem vidro e sem mainéis, só a moldura. O vão útil é de 1,07 × 0,76 m.
 - **Interior** (`models/cabin.ts`):
   - **Construído no código:** piso de tábuas, forro de tábuas sob as duas águas do telhado, as faces internas dos frontões, duas vigas e o cano do fogão até o forro.
@@ -197,12 +210,16 @@ O resultado é folhagem de abeto real com menos triângulos (árvore A, perto: 1
 
 **Qualidade adaptativa:**
 
-- Um `PerformanceMonitor` começa a medir só depois que a floresta carrega.
-- Entra o modo leve abaixo de 45 fps em telas de 60 Hz, ou de 55 fps em telas de 120 Hz:
-  - resolução 1,25×;
-  - sombra de 1024 px;
-  - troca de detalhe 40% mais perto.
-- Telas até 767 px começam no modo leve, com densidade 0,6.
+- Cinco níveis em `forestConfig.quality` (`ultra`, `high`, `medium`, `low`, `minimum`). Cada um define:
+  - `detail`: fator das distâncias de troca entre níveis de detalhe;
+  - `reach`: fator da distância em que árvores, plantas e pedras somem na névoa;
+  - `dpr`: densidade de pixels máxima;
+  - `shadowMap`: resolução do mapa de sombra.
+- O nível inicial é estimado em `utils/deviceQuality.ts` a partir da GPU (`WEBGL_debug_renderer_info`), dos núcleos (`hardwareConcurrency`), da memória (`deviceMemory`, só no Chrome) e de a tela ser pequena ou de toque. Desktop com GPU dedicada ou Apple M começa em `ultra`; GPU integrada Intel, em `high`; celular topo de linha, em `medium`; iPhone e intermediários, em `low`; Mali G5x, Adreno 3xx–6xx com pouca memória e PowerVR, em `minimum`.
+- Um `PerformanceMonitor` começa a medir só depois que a floresta carrega e reavalia a cada 2,5 s: desce um nível abaixo de 52 fps em telas de 60 Hz (90 fps em 120 Hz) e sobe um nível perto da taxa máxima. Para depois de `níveis + 1` mudanças, para não oscilar.
+- QA: `?quality=<nível>` fixa o nível e desliga o monitor.
+- Triângulos visíveis no celular (variantes leves, capítulos Recursos e Experimente): `ultra` 2,5–2,7 M; `high` 2,2–2,5 M; `medium` 1,7–2,2 M; `low` 1,3–1,7 M; `minimum` 1,0–1,1 M.
+- Telas até 767 px usam densidade 0,6.
 
 **Medido** (Chrome sem limite de fps, GPU Apple M3 Pro, tela Retina 2×, janela 1512×945; comparação intercalada na mesma sessão):
 
@@ -266,7 +283,7 @@ O tempo por quadro depende da carga da máquina: com outro navegador usando a GP
 
 `src/features/forest/config/forestConfig.ts`:
 
-- `shots`: enquadramentos, um por capítulo. `freedom` reduz caminhos e paralaxe perto de paredes. Os dois últimos ficam no referencial da cabana (`cabinPoint`, `WINDOW`).
+- `shots`: enquadramentos, um por capítulo. `freedom` reduz caminhos e paralaxe perto de paredes; `via` lista pontos de passagem vindos do plano anterior. Os três últimos ficam no referencial da cabana (`cabinPoint`, `WINDOW`).
 - `camera`:
   - `smoothTime`: inércia;
   - `fov` e `portraitFov`;

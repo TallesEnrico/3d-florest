@@ -19,10 +19,10 @@ export interface LodBatches {
   /**
    * Picks each instance's level of detail from its distance to the camera; when it changes, the
    * two levels dissolve into each other over `fadeSeconds` (`delta` = seconds since the last
-   * call). `detail` < 1 brings the switches between levels closer; the last distance (where
-   * instances disappear, deep in the haze) never moves.
+   * call). `detail` < 1 brings the switches between levels closer; `reach` < 1 brings the last
+   * distance (where instances disappear into the haze) closer.
    */
-  update: (camera: Vector3, detail: number, delta: number) => void
+  update: (camera: Vector3, detail: number, delta: number, reach?: number) => void
   /**
    * Shows every instance at one level (clamped to what each model has), ignoring distance and
    * skipping fades — for drawing the static shadow map; `null` returns to distance-based
@@ -179,7 +179,7 @@ export function createLodBatches(
   // Rank: 0 = most detailed … distances.length = hidden (beyond the last distance).
   const rank = (lod: number) => (lod === HIDDEN ? distances.length : lod)
   const fromRank = (r: number) => (r >= distances.length ? HIDDEN : r)
-  const threshold = (r: number, detail: number) => (r < last ? distances[r] * detail : distances[r])
+  const threshold = (r: number, detail: number, reach: number) => (r < last ? distances[r] * detail : distances[r] * reach)
 
   /** Draws `from` dissolving into `to` at progress t (t = 0: only `from`; t = 1: only `to`). */
   const apply = (item: Tracked, from: number, to: number, t: number) => {
@@ -194,16 +194,18 @@ export function createLodBatches(
 
   const lastCamera = new Vector3()
   let lastDetail = 1
+  let lastReach = 1
   let forced = false
-  const update = (camera: Vector3, detail = 1, delta = 0) => {
+  const update = (camera: Vector3, detail = 1, delta = 0, reach = 1) => {
     lastCamera.copy(camera)
     lastDetail = detail
+    lastReach = reach
     if (forced) return
     for (const item of tracked) {
       const distance = Math.hypot(item.x - camera.x, item.z - camera.z)
       let target = HIDDEN
       for (let k = 0; k <= last; k++) {
-        if (distance < threshold(k, detail)) {
+        if (distance < threshold(k, detail, reach)) {
           target = k
           break
         }
@@ -219,7 +221,7 @@ export function createLodBatches(
         // Hysteresis: only switch once clearly past the boundary between the two levels.
         const current = rank(item.lod)
         const wanted = rank(target)
-        const boundary = threshold(Math.min(current, wanted), detail)
+        const boundary = threshold(Math.min(current, wanted), detail, reach)
         if (wanted > current ? distance < boundary + HYSTERESIS : distance > boundary - HYSTERESIS) continue
         item.next = fromRank(wanted)
         item.t = 0
@@ -243,7 +245,7 @@ export function createLodBatches(
         item.lod = UNSET
         item.next = null
       }
-      update(lastCamera, lastDetail, 0)
+      update(lastCamera, lastDetail, 0, lastReach)
       return
     }
     forced = true

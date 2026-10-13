@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 import type { SectionId } from '../config/landingContent.ts'
 import { BehindTheScenesSection } from './BehindTheScenesSection.tsx'
+import { CampfireSection } from './CampfireSection.tsx'
 import { CreditsSection } from './CreditsSection.tsx'
 import { ExperienceSection } from './ExperienceSection.tsx'
 import { FaqSection } from './FaqSection.tsx'
@@ -21,4 +22,5 @@ export const sectionComponents: Partial<Record<SectionId, ComponentType>> = {
   experimente: ExperienceSection,
   perguntas: FaqSection,
   creditos: CreditsSection,
+  fogueira: CampfireSection,
 }

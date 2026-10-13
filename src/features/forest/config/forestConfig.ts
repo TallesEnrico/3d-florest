@@ -2,6 +2,12 @@ import type { ForestConfig } from '../types/index.ts'
 
 const FOREST = `${import.meta.env.BASE_URL}assets/forest`
 
+export const LITE_ASSETS = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px), (pointer: coarse)').matches
+const MODEL_SUFFIX = LITE_ASSETS ? '_lite' : ''
+const TEXTURE_SIZE = LITE_ASSETS ? '512' : '1k'
+const model = (name: string) => `${FOREST}/models/${name}${MODEL_SUFFIX}.glb`
+const texture = (name: string) => `${FOREST}/textures/${name}_${TEXTURE_SIZE}.webp`
+
 /** The log cabin at the end of the walk (also used to place the last two shots). */
 const CABIN = { seed: 21, center: [0.6, -68.6] as [number, number], yaw: 0.45, size: [5.2, 4.4] as [number, number], groundY: -0.14 }
 
@@ -44,6 +50,15 @@ export const forestConfig: ForestConfig = {
       position: cabinPoint(WINDOW.x + 0.6, WINDOW.y + 0.02, WINDOW.z),
       target: cabinPoint(2.4, 0.75, -1.3),
       freedom: 0.15,
+    },
+    {
+      position: cabinPoint(3, 1.35, 8.2),
+      target: cabinPoint(3.2, 0.6, 4.8),
+      freedom: 0.4,
+      via: [
+        { position: cabinPoint(-0.8, 1.45, 1), target: cabinPoint(-0.65, 1.3, 4.5), freedom: 0.1 },
+        { position: cabinPoint(-0.62, 1.45, 3.4), target: cabinPoint(2.6, 0.8, 6.6), freedom: 0.15 },
+      ],
     },
   ],
 
@@ -92,55 +107,63 @@ export const forestConfig: ForestConfig = {
   // 0.6 s once the camera crosses its distance.
   lod: { trees: [14, 38, 100], plants: 32, props: 55, fadeSeconds: 0.6 },
 
+  quality: [
+    { name: 'ultra', detail: 1, reach: 1, dpr: 1.25, shadowMap: 2048 },
+    { name: 'high', detail: 0.8, reach: 1, dpr: 1.25, shadowMap: 2048 },
+    { name: 'medium', detail: 0.6, reach: 0.85, dpr: 1, shadowMap: 1024 },
+    { name: 'low', detail: 0.45, reach: 0.7, dpr: 1, shadowMap: 1024 },
+    { name: 'minimum', detail: 0.35, reach: 0.55, dpr: 0.8, shadowMap: 512 },
+  ],
+
   assets: {
-    trees: `${FOREST}/models/fir_trees.glb`,
-    props: `${FOREST}/models/forest_props.glb`,
-    environment: `${FOREST}/hdri/forest_slope_1k.hdr`,
+    trees: model('fir_trees'),
+    props: model('forest_props'),
+    environment: `${FOREST}/hdri/forest_slope_${LITE_ASSETS ? '512' : '1k'}.hdr`,
     ground: {
       litter: {
-        color: `${FOREST}/textures/forest_leaves_04_diff_1k.webp`,
-        normal: `${FOREST}/textures/forest_leaves_04_nor_gl_1k.webp`,
-        arm: `${FOREST}/textures/forest_leaves_04_arm_1k.webp`,
+        color: texture('forest_leaves_04_diff'),
+        normal: texture('forest_leaves_04_nor_gl'),
+        arm: texture('forest_leaves_04_arm'),
         tile: 2.2,
       },
       trail: {
-        color: `${FOREST}/textures/forest_ground_04_diff_1k.webp`,
-        normal: `${FOREST}/textures/forest_ground_04_nor_gl_1k.webp`,
-        arm: `${FOREST}/textures/forest_ground_04_arm_1k.webp`,
+        color: texture('forest_ground_04_diff'),
+        normal: texture('forest_ground_04_nor_gl'),
+        arm: texture('forest_ground_04_arm'),
         tile: 2.5,
       },
     },
     cabin: {
-      props: `${FOREST}/models/cabin_props.glb`,
-      interior: `${FOREST}/models/cabin_interior.glb`,
+      props: model('cabin_props'),
+      interior: model('cabin_interior'),
       logs: {
-        color: `${FOREST}/textures/rough_wood_diff_1k.webp`,
-        normal: `${FOREST}/textures/rough_wood_nor_gl_1k.webp`,
-        arm: `${FOREST}/textures/rough_wood_arm_1k.webp`,
+        color: texture('rough_wood_diff'),
+        normal: texture('rough_wood_nor_gl'),
+        arm: texture('rough_wood_arm'),
         tile: 1.4,
       },
       ends: {
-        color: `${FOREST}/textures/tree_end_001_diff_1k.webp`,
-        normal: `${FOREST}/textures/tree_end_001_nor_gl_1k.webp`,
-        arm: `${FOREST}/textures/tree_end_001_arm_1k.webp`,
+        color: texture('tree_end_001_diff'),
+        normal: texture('tree_end_001_nor_gl'),
+        arm: texture('tree_end_001_arm'),
         tile: 1,
       },
       planks: {
-        color: `${FOREST}/textures/weathered_planks_diff_1k.webp`,
-        normal: `${FOREST}/textures/weathered_planks_nor_gl_1k.webp`,
-        arm: `${FOREST}/textures/weathered_planks_arm_1k.webp`,
+        color: texture('weathered_planks_diff'),
+        normal: texture('weathered_planks_nor_gl'),
+        arm: texture('weathered_planks_arm'),
         tile: 1.2,
       },
       roof: {
-        color: `${FOREST}/textures/wood_shingles_010_diff_1k.webp`,
-        normal: `${FOREST}/textures/wood_shingles_010_nor_gl_1k.webp`,
-        arm: `${FOREST}/textures/wood_shingles_010_arm_1k.webp`,
+        color: texture('wood_shingles_010_diff'),
+        normal: texture('wood_shingles_010_nor_gl'),
+        arm: texture('wood_shingles_010_arm'),
         tile: 1.3,
       },
       gables: {
-        color: `${FOREST}/textures/wood_shingles_011_diff_1k.webp`,
-        normal: `${FOREST}/textures/wood_shingles_011_nor_gl_1k.webp`,
-        arm: `${FOREST}/textures/wood_shingles_011_arm_1k.webp`,
+        color: texture('wood_shingles_011_diff'),
+        normal: texture('wood_shingles_011_nor_gl'),
+        arm: texture('wood_shingles_011_arm'),
         tile: 1.1,
       },
     },

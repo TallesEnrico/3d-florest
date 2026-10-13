@@ -14,6 +14,7 @@ export const sections = [
   { id: 'experimente', number: '07', title: 'Experimente', inNav: false },
   { id: 'perguntas', number: '08', title: 'Perguntas', inNav: false },
   { id: 'creditos', number: '09', title: 'Créditos', inNav: false },
+  { id: 'fogueira', number: '10', title: 'Fogueira', inNav: false },
 ] as const
 
 export type SectionEntry = (typeof sections)[number]
@@ -127,7 +128,8 @@ export const featuresCopy = {
 
 const LANDING_ASSETS = `${import.meta.env.BASE_URL}assets/landing`
 /** Forest download (models, textures, HDR in public/assets/forest), rounded. */
-const FOREST_MB = 23
+const FOREST_MB = 24
+const FOREST_LITE_MB = 8
 
 export const behindTheScenesCopy = {
   eyebrow: 'Bastidores',
@@ -190,7 +192,7 @@ export const faqCopy = {
     },
     {
       question: 'Por que a floresta leva um instante para aparecer?',
-      answer: `Ela é carregada à parte, só quando você chega perto dela: cerca de ${FOREST_MB} MB de modelos, texturas e luz. Enquanto isso a página continua rolando, e a placa de vídeo é preparada antes de a floresta entrar na tela.`,
+      answer: `Ela é carregada à parte, só quando você chega perto dela: cerca de ${FOREST_MB} MB de modelos, texturas e luz (${FOREST_LITE_MB} MB no celular, com texturas menores). Enquanto isso a página continua rolando, e a placa de vídeo é preparada antes de a floresta entrar na tela.`,
     },
     {
       question: 'Dá para navegar só pelo teclado?',
@@ -229,4 +231,11 @@ export const creditsCopy = {
       text: 'React, React Three Fiber, drei, three.js, MediaPipe, Zustand e Vite. Fontes Fraunces e Inter (SIL Open Font License).',
     },
   ],
+}
+
+export const campfireCopy = {
+  eyebrow: 'Fim da trilha',
+  title: 'Senta um pouco perto do fogo',
+  lead: 'A caminhada termina aqui, do lado de fora da cabana. Volte ao início para olhar o vale de novo, agora sabendo o que há por trás da janela.',
+  action: 'Voltar ao início',
 }

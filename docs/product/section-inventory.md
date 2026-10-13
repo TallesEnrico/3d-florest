@@ -31,7 +31,8 @@
 | 07 | CTA final | `experimente` | 🟨 Implementado; texto aguarda revisão |
 | 08 | Perguntas (FAQ) | `perguntas` | 🟨 Implementado; texto aguarda revisão |
 | 09 | Créditos | `creditos` | 🟨 Implementado; texto aguarda revisão |
-| 10 | Rodapé | `rodape` | 🟨 Estrutura implementada (L1); refinamento pendente |
+| 10 | Fogueira (fim da trilha) | `fogueira` | 🟨 Implementado; texto aguarda revisão |
+| 11 | Rodapé | `rodape` | 🟨 Estrutura implementada (L1); refinamento pendente |
 
 Legenda: 🔲 slot reservado (âncora real, conteúdo pendente) · 🟨 aprovada / parcial · ✅ implementada e aceita.
 
@@ -164,7 +165,14 @@ Legenda: 🔲 slot reservado (âncora real, conteúdo pendente) · 🟨 aprovada
 - **Layout:** painel à esquerda, grupos em duas colunas (uma no celular).
 - **Câmera:** dentro da cabana, depois de passar pela janela.
 
-## 10 · Rodapé (`#rodape`)
+## 10 · Fogueira (`#fogueira`)
+
+- **Objetivo:** encerrar a jornada fora da cabana e convidar a voltar à janela do início.
+- **Conteúdo (rascunho):** "Fim da trilha" · "Senta um pouco perto do fogo" · um parágrafo curto e o botão "Voltar ao início".
+- **Layout:** painel estreito à esquerda; no celular, no topo da tela, para a fogueira aparecer embaixo.
+- **Câmera:** sai da cabana pela porta (aberta para dentro) e termina diante da fogueira, com o banquinho em primeiro plano e a cabana ao fundo.
+
+## 11 · Rodapé (`#rodape`)
 
 - **Objetivo:** fechar com informação real (D9).
 - **Conteúdo:**
